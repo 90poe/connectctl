@@ -1,0 +1,30 @@
+{
+    "name": "source-postgres-vessel-information",
+    "config": {
+      "connection.password": "postgres",
+      "connection.url": "jdbc:postgresql://postgres:5432/postgres",
+      "connection.user": "postgres",
+      "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "mode": "timestamp",
+      "name": "source-postgres-vessel-information",
+      "poll.interval.ms": "86400000",
+      "query": "SELECT v.id::varchar, v.imo_number::varchar AS imo, v.account_id::varchar, v.vessel_name AS name, v.planned_name, v.archived, v.official_number, v.port_of_registry_id::varchar, v.short_name, v.call_sign, v.fleet_id::varchar, v.type_id::varchar, v.sub_type_id::varchar, v.suez_type_id::varchar, v.flag_iso_code, v.bank_account_payee_id::varchar, v.registered_owner_id::varchar, v.bare_boat_owner_id::varchar, v.accounting_code, (cast(v.date_built as text) || ' 00:00:00')::timestamp AS date_built, v.builder_serial_number, (cast(v.keel_laid as text) || ' 00:00:00')::timestamp AS keel_laid, (cast(v.delivered as text) || ' 00:00:00')::timestamp AS delivered, (cast(v.sold_date as text) || ' 00:00:00')::timestamp AS sold_date, v.class_society_id::varchar, v.class_number, v.new_build, v.kpi_expenditure_vessel, v.time_charter_in, v.bareboat_out, v.active_for_chartering, v.available_to_public, v.brokers_only, v.last_updated_by AS vessels_last_updated_by, v.last_updated_at AS \"v.last_updated_at\", d.length_overall::float, d.length_between_perpendiculars::float, d.beam::float, d.moulded_depth::float, d.international_gross_tonnage, d.international_net_tonnage, d.reduced_gross_tonnage, d.panama_gross_tonnage, d.panama_net_tonnage, d.suez_gross_tonnage, d.suez_net_tonnage, d.displacement, d.light_ship, d.constants, d.fresh_water_allowance::float, d.cargo_safety_margin, d.summer_dwt, d.summer_draft::float, d.summer_tpc, d.winter_dwt, d.winter_draft::float, d.winter_tpc, d.tropical_dwt, d.tropical_draft::float, d.tropical_tpc, d.last_updated_by AS dimensions_last_updated_by, d.last_updated_at AS dimensions_last_updated_at, NULLIF(vt.name, '') AS vessel_types_name, NULLIF(vst.name, '') AS vessel_sub_types_name FROM vessels AS v JOIN dimensions AS d ON d.vessel_id = v.id AND v.imo_number IS NOT NULL LEFT OUTER JOIN vessel_type_sub_types AS vtst ON vtst.id = v.sub_type_id LEFT JOIN vessel_sub_types AS vst ON vtst.vessel_sub_type_id = vst.id JOIN vessel_types AS vt ON vt.id = v.type_id",
+      "quote.sql.identifiers": "never",
+      "tasks.max": "10",
+      "timestamp.column.name": "v.last_updated_at",
+      "topic.prefix": "in_vessel_information",
+      "transforms": "renameTimestamp,createKey,extractString,extractTimestamp",
+      "transforms.createKey.fields": "imo",
+      "transforms.createKey.type": "org.apache.kafka.connect.transforms.ValueToKey",
+      "transforms.extractString.field": "imo",
+      "transforms.extractString.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
+      "transforms.extractTimestamp.field.name": "last_updated_at",
+      "transforms.extractTimestamp.type": "com.github.jcustenborder.kafka.connect.transform.common.ExtractTimestamp$Value",
+      "transforms.renameTimestamp.renames": "v.last_updated_at:last_updated_at",
+      "transforms.renameTimestamp.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+      "value.converter": "io.confluent.connect.avro.AvroConverter",
+      "value.converter.schema.registry.url": "${env:CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL}",
+      "value.converter.schemas.enable": "true"
+    }
+  }
