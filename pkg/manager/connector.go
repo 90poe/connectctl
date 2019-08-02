@@ -18,9 +18,10 @@ type ConnectorManager struct {
 	connectors []*connect.Connector
 	syncPeriod time.Duration
 	client     *connect.Client
+	logger     *log.Entry
 }
 
-func NewConnectorsManager(clusterURL string, connectors []*connect.Connector, syncPeriod time.Duration) (*ConnectorManager, error) {
+func NewConnectorsManager(clusterURL string, connectors []*connect.Connector, syncPeriod time.Duration, logger *log.Entry) (*ConnectorManager, error) {
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
 	client, err := connect.NewClient(clusterURL, userAgent)
@@ -33,11 +34,12 @@ func NewConnectorsManager(clusterURL string, connectors []*connect.Connector, sy
 		connectors: connectors,
 		syncPeriod: syncPeriod,
 		client:     client,
+		logger:     logger,
 	}, nil
 }
 
 func (c *ConnectorManager) Run(stopCH <-chan struct{}) error {
-	log.Infof("running connector manager for server %s\n", c.clusterURL)
+	c.logger.Info("running connector manager")
 
 	syncChannel := time.NewTicker(c.syncPeriod).C
 	for {
@@ -47,31 +49,31 @@ func (c *ConnectorManager) Run(stopCH <-chan struct{}) error {
 				return errors.Wrap(err, "reconciling connectors")
 			}
 		case <-stopCH:
-			log.Info("Shutting down connector manager")
+			c.logger.Info("Shutting down connector manager")
 			return nil
 		}
 	}
-
-	return nil
 }
 
 func (c *ConnectorManager) reconcileConnectors() error {
-	log.Debug("reconciling connectors")
+	c.logger.Debug("reconciling connectors")
 
 	for _, connector := range c.connectors {
-		log.WithField("connector", connector.Name).Debug("reconciling connector")
-
 		err := c.reconcileConnector(connector)
 		if err != nil {
 			return errors.Wrapf(err, "reconciling connector: %s", connector.Name)
 		}
 	}
 
-	log.Debug("finished reconciling connectors")
+	c.logger.Debug("finished reconciling connectors")
 	return nil
 }
 
 func (c *ConnectorManager) reconcileConnector(connector *connect.Connector) error {
+	connectLogger := c.logger.WithField("connector", connector.Name)
+	connectLogger.Info("reconciling connector")
+
+	connectLogger.Debug("checking if connector exists in cluster")
 	existingConnectors, resp, err := c.client.GetConnector(connector.Name)
 	if err != nil {
 		if !connect.IsNotFound(err) {
@@ -80,20 +82,23 @@ func (c *ConnectorManager) reconcileConnector(connector *connect.Connector) erro
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
+		connectLogger.Info("connector doesn't exist, creating")
 		_, err = c.client.CreateConnector(connector)
 		if err != nil {
-			//if !connect.IsAPIError(err) {
+			connectLogger.WithError(err).Debug("error creating connector")
 			return errors.Wrap(err, "creating connector")
-			//}
 		}
 		//TODO: handle API error
+
+		connectLogger.Info("created connector sucessfully")
 		return nil
 	}
 
 	if diff := cmp.Diff(connector, existingConnectors); diff != "" {
-		log.Infof("Diff detected %s %s", connector.Name, diff)
+		connectLogger.Infof("Diff detected in connector config %s", diff)
 		// TODO: update the connector
 	}
 
+	connectLogger.Info("reconciled connector")
 	return nil
 }

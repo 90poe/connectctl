@@ -39,23 +39,26 @@ func manageConnectorsCmd() *cobra.Command {
 }
 
 func doManageConnectors(cmd *cobra.Command, args []string) {
-	log.WithField("cluster", clusterURL).WithField("files", definitionFiles).Debug("Handling  'manage connectors' command")
+	clusterLogger := log.WithField("cluster", clusterURL)
+	clusterLogger.Debug("executing manage connectors command")
 
 	connectors, err := loadDefinitions(definitionFiles)
 	if err != nil {
-		log.WithError(err).Fatalln("Error reading connectors files")
+		clusterLogger.WithError(err).Fatalln("Error reading connectors files")
 	}
 
 	stopCh := signals.SetupSignalHandler()
 
-	mngr, err := manager.NewConnectorsManager(clusterURL, connectors, syncPeriod)
+	mngr, err := manager.NewConnectorsManager(clusterURL, connectors, syncPeriod, clusterLogger)
 	if err != nil {
-		log.WithError(err).Fatalln("Error creating connectors manager")
+		clusterLogger.WithError(err).Fatalln("Error creating connectors manager")
 	}
 
 	if err := mngr.Run(stopCh); err != nil {
-		log.WithError(err).Fatalln("Error running connector manager")
+		clusterLogger.WithError(err).Fatalln("Error running connector manager")
 	}
+
+	clusterLogger.Info("finished executing manage connectors command")
 }
 
 func loadDefinitions(files []string) ([]*connect.Connector, error) {
