@@ -19,7 +19,9 @@
                 "--files",
                 "${workspaceRoot}/examples/connector1.json",
                 "--sync-period",
-                "30s"
+                "30s",
+                "--loglevel",
+                "DEBUG"
 
             ]
         }

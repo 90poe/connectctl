@@ -74,11 +74,20 @@ func (c *ConnectorManager) reconcileConnectors() error {
 func (c *ConnectorManager) reconcileConnector(connector *connect.Connector) error {
 	existingConnectors, resp, err := c.client.GetConnector(connector.Name)
 	if err != nil {
-		return errors.Wrapf(err, "getting existing connector from cluster")
+		if !connect.IsNotFound(err) {
+			return errors.Wrapf(err, "getting existing connector from cluster")
+		}
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		//TODO: create
+		_, err = c.client.CreateConnector(connector)
+		if err != nil {
+			//if !connect.IsAPIError(err) {
+			return errors.Wrap(err, "creating connector")
+			//}
+		}
+		//TODO: handle API error
+		return nil
 	}
 
 	if diff := cmp.Diff(connector, existingConnectors); diff != "" {

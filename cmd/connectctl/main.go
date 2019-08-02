@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/90poe/connectctl/pkg/ctl/manage"
+	"github.com/90poe/connectctl/pkg/logging"
 	"github.com/90poe/connectctl/pkg/version"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -17,6 +18,7 @@ import (
 var (
 	cfgFile  string
 	logLevel string
+	logFile  string
 )
 
 func main() {
@@ -24,35 +26,31 @@ func main() {
 		Use:   "connectctl [command]",
 		Short: "A kafka connect CLI",
 		Long:  "",
+		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
+			err := logging.Configure(logLevel, logFile)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			log.Infof("connectctl, %s", version.ToString())
+		},
 		Run: func(c *cobra.Command, _ []string) {
 			_ = c.Help()
 		},
 	}
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile,
-		"config", "c",
-		"Config file (default is $HOME/.connectl.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "l", "warn", "Log level for the CLI")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "", "", "Config file (default is $HOME/.connectl.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "l", "", "Log level for the CLI (Optional)")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "logfile", "", "", "A file to use for log output (Optional)")
 
 	_ = viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 	_ = viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
+	_ = viper.BindPFlag("logfile", rootCmd.PersistentFlags().Lookup("logfile"))
+	viper.SetDefault("loglevel", "INFO")
 
 	rootCmd.AddCommand(manage.Command())
 
 	cobra.OnInitialize(initConfig)
-
-	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
-	})
-	log.SetReportCaller(true)
-	log.SetOutput(os.Stdout)
-	level, err := log.ParseLevel(logLevel)
-	if err != nil {
-		log.WithError(err).Errorf("error parsing log level: %s", logLevel)
-	}
-	log.SetLevel(level)
-
-	log.Infof("connectctl, %s", version.ToString())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

@@ -10,8 +10,15 @@ require (
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.8.0
+	github.com/rook/operator-kit v0.0.0-20190425175530-e7b2e1264fff // indirect
+	github.com/serverless-operator/serverless-operator v0.0.0-20181023134246-ae1ed858e468 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
+	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a // indirect
+	google.golang.org/appengine v1.5.0 // indirect
+	k8s.io/apiextensions-apiserver v0.0.0-20190802061903-25691aabac0a // indirect
+	k8s.io/client-go v11.0.0+incompatible // indirect
 	k8s.io/klog v0.3.3 // indirect
+	k8s.io/utils v0.0.0-20190801114015-581e00157fb1 // indirect
 )

@@ -18,3 +18,17 @@ type APIError struct {
 func (e APIError) Error() string {
 	return fmt.Sprintf("%v (HTTP %d)", e.Message, e.Code)
 }
+
+func IsAPIError(err error) bool {
+	_, ok := err.(APIError)
+	return ok
+}
+
+func IsNotFound(err error) bool {
+	apiErr, ok := err.(APIError)
+	if !ok {
+		return false
+	}
+
+	return apiErr.Code == 404
+}
