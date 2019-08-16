@@ -67,6 +67,21 @@
                 "TRACE",
                 "--allow-purge"
             ]
+        },
+        {
+            "name": "Launch (restart all)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceRoot}/cmd/connectctl",
+            "env": {},
+            "args": [
+                "restart",
+                "--cluster",
+                "http://localhost:8083",
+                "--loglevel",
+                "TRACE"
+            ]
         }
     ]
 }

@@ -75,12 +75,12 @@ func doManageConnectors(cmd *cobra.Command, args []string) {
 	}
 	clusterLogger.WithField("config", config).Trace("manage connectors confirguration")
 
-	mngr, err := manager.NewConnectorsManager(config, source)
+	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
 		clusterLogger.WithError(err).Fatalln("Error creating connectors manager")
 	}
 
-	if err := mngr.Run(stopCh); err != nil {
+	if err := mngr.Run(source, stopCh); err != nil {
 		clusterLogger.WithError(err).Fatalln("Error running connector manager")
 	}
 

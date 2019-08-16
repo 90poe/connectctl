@@ -19,11 +19,10 @@ type ConnectorManager struct {
 	config *Config
 	client *connect.Client
 	logger *log.Entry
-	source ConnectorSource
 }
 
 // NewConnectorsManager creates a new ConnectorManager
-func NewConnectorsManager(config *Config, source ConnectorSource) (*ConnectorManager, error) {
+func NewConnectorsManager(config *Config) (*ConnectorManager, error) {
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
 	client, err := connect.NewClient(config.ClusterURL, userAgent)
@@ -35,19 +34,18 @@ func NewConnectorsManager(config *Config, source ConnectorSource) (*ConnectorMan
 		config: config,
 		client: client,
 		logger: config.Logger,
-		source: source,
 	}, nil
 }
 
 // Run will start the connector manager running and managing connectors
-func (c *ConnectorManager) Run(stopCH <-chan struct{}) error {
+func (c *ConnectorManager) Run(source ConnectorSource, stopCH <-chan struct{}) error {
 	c.logger.Info("running connector manager")
 
 	syncChannel := time.NewTicker(c.config.SyncPeriod).C
 	for {
 		select {
 		case <-syncChannel:
-			connectors, err := c.source()
+			connectors, err := source()
 			if err != nil {
 				return errors.Wrap(err, "getting connector configurations")
 			}
