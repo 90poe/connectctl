@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 )
 
 // A Connector represents a Kafka Connect connector instance.
@@ -15,6 +16,18 @@ type Connector struct {
 	Name   string          `json:"name"`
 	Config ConnectorConfig `json:"config,omitempty"`
 	Tasks  []TaskID        `json:"tasks,omitempty"`
+}
+
+// ConfigEqual will compare 2 instances of a connector config
+// and return true or false if they are equal.
+//
+// Note: tasks are ignored in the comparison
+func (c *Connector) ConfigEqual(other *Connector) bool {
+	if c.Name != other.Name {
+		return false
+	}
+
+	return reflect.DeepEqual(c.Config, other.Config)
 }
 
 // ConnectorConfig is a key-value mapping of configuration for connectors, where
@@ -75,7 +88,7 @@ type TaskState struct {
 // See: http://docs.confluent.io/current/connect/userguide.html#post--connectors
 func (c *Client) CreateConnector(conn *Connector) (*http.Response, error) {
 	if len(conn.Tasks) != 0 {
-		return nil, errors.New("Cannot create Connector with existing Tasks")
+		return nil, errors.New("cannot create Connector with existing Tasks")
 	}
 	path := "connectors"
 	response, err := c.doRequest("POST", path, conn, conn)

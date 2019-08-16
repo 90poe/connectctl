@@ -79,9 +79,9 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
+		errEnc := json.NewEncoder(buf).Encode(body)
+		if errEnc != nil {
+			return nil, errEnc
 		}
 		contentType = "application/json"
 	}

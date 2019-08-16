@@ -2,50 +2,56 @@ package manager
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/90poe/connectctl/pkg/connect"
 	"github.com/90poe/connectctl/pkg/version"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
+// ConnectorSource will return a slice of the desired connector configurationbs
+type ConnectorSource func() ([]*connect.Connector, error)
+
+// ConnectorManager manages connectors in a Kafka Connect cluster
 type ConnectorManager struct {
-	clusterURL string
-	connectors []*connect.Connector
-	syncPeriod time.Duration
-	client     *connect.Client
-	logger     *log.Entry
+	config *Config
+	client *connect.Client
+	logger *log.Entry
+	source ConnectorSource
 }
 
-func NewConnectorsManager(clusterURL string, connectors []*connect.Connector, syncPeriod time.Duration, logger *log.Entry) (*ConnectorManager, error) {
+// NewConnectorsManager creates a new ConnectorManager
+func NewConnectorsManager(config *Config, source ConnectorSource) (*ConnectorManager, error) {
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
-	client, err := connect.NewClient(clusterURL, userAgent)
+	client, err := connect.NewClient(config.ClusterURL, userAgent)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating connect client")
 	}
 
 	return &ConnectorManager{
-		clusterURL: clusterURL,
-		connectors: connectors,
-		syncPeriod: syncPeriod,
-		client:     client,
-		logger:     logger,
+		config: config,
+		client: client,
+		logger: config.Logger,
+		source: source,
 	}, nil
 }
 
+// Run will start the connector manager running and managing connectors
 func (c *ConnectorManager) Run(stopCH <-chan struct{}) error {
 	c.logger.Info("running connector manager")
 
-	syncChannel := time.NewTicker(c.syncPeriod).C
+	syncChannel := time.NewTicker(c.config.SyncPeriod).C
 	for {
 		select {
 		case <-syncChannel:
-			if err := c.reconcileConnectors(); err != nil {
+			connectors, err := c.source()
+			if err != nil {
+				return errors.Wrap(err, "getting connector configurations")
+			}
+			if err = c.reconcileConnectors(connectors); err != nil {
 				return errors.Wrap(err, "reconciling connectors")
 			}
 		case <-stopCH:
@@ -55,50 +61,185 @@ func (c *ConnectorManager) Run(stopCH <-chan struct{}) error {
 	}
 }
 
-func (c *ConnectorManager) reconcileConnectors() error {
+func (c *ConnectorManager) reconcileConnectors(connectors []*connect.Connector) error {
 	c.logger.Debug("reconciling connectors")
 
-	for _, connector := range c.connectors {
+	for _, connector := range connectors {
 		err := c.reconcileConnector(connector)
 		if err != nil {
 			return errors.Wrapf(err, "reconciling connector: %s", connector.Name)
 		}
 	}
 
+	if c.config.AllowPurge {
+		err := c.checkAndDeleteUnmanaged(connectors)
+		if err != nil {
+			return errors.Wrapf(err, "checking for unmanaged connectors to purge")
+		}
+	}
+
+	err := c.checkConnectorStatus(connectors)
+	if err != nil {
+		return errors.Wrap(err, "checking connector status")
+	}
+
 	c.logger.Debug("finished reconciling connectors")
+	return nil
+}
+
+func (c *ConnectorManager) checkConnectorStatus(connectors []*connect.Connector) error {
+	c.logger.Debug("checking connectors status")
+
+	for _, connector := range connectors {
+		connectLogger := c.logger.WithField("connector", connector.Name)
+		connectLogger.Debug("getting connector status")
+
+		status, resp, err := c.client.GetConnectorStatus(connector.Name)
+		c.logger.WithField("response", resp).Trace("get connector status response")
+
+		if err != nil {
+			return errors.Wrapf(err, "getting connector status for %s", connector.Name)
+		}
+
+		connectLogger.Debugf("connector state is %s", status.Connector.State)
+
+		switch status.Connector.State {
+		case "RUNNING":
+			break
+		case "UNASSIGNED":
+			break
+		case "PAUSED":
+			break
+		case "FAILED":
+			connectLogger.Error("connector has failed, restarting")
+			//TODO: restart
+		}
+
+		// TODO loop around the tasks
+		for _, taskState := range status.Tasks {
+			taskLogger := connectLogger.WithField("taskid", taskState.ID)
+			taskLogger.Debugf("task state is %s", taskState.State)
+		}
+
+	}
+
+	c.logger.Debug("finished checking connectors status")
+	return nil
+}
+
+func (c *ConnectorManager) checkAndDeleteUnmanaged(connectors []*connect.Connector) error {
+	c.logger.Debug("purging any unmanaged connectors from cluster")
+
+	existing, resp, err := c.client.ListConnectors()
+	c.logger.WithField("response", resp).Trace("list connectors response")
+	if err != nil {
+		return errors.Wrap(err, "getting existing connectors")
+	}
+
+	var unmanaged []string
+	for _, existingName := range existing {
+		if !containsConnector(existingName, connectors) {
+			unmanaged = append(unmanaged, existingName)
+		}
+	}
+
+	if len(unmanaged) == 0 {
+		c.logger.Debug("no unmanaged connectors")
+		return nil
+	}
+
+	return c.deleteUnmanaged(unmanaged)
+}
+
+func (c *ConnectorManager) deleteUnmanaged(unmanagedConnectors []string) error {
+	c.logger.Debug("deleting unmanaged connectors")
+
+	for _, connectorName := range unmanagedConnectors {
+		connectLogger := c.logger.WithField("connector", connectorName)
+		connectLogger.Info("deleting connector from cluster")
+
+		resp, err := c.client.DeleteConnector(connectorName)
+		connectLogger.WithField("response", resp).Trace("delete connector response")
+
+		if err != nil {
+			return errors.Wrapf(err, "deleting connector %s", connectorName)
+		}
+
+		connectLogger.Info("deleted connector")
+	}
+
+	c.logger.Debug("deleted unmanaged connectors")
 	return nil
 }
 
 func (c *ConnectorManager) reconcileConnector(connector *connect.Connector) error {
 	connectLogger := c.logger.WithField("connector", connector.Name)
-	connectLogger.Info("reconciling connector")
+	connectLogger.Debug("reconciling connector")
+	defer connectLogger.Debug("reconciled connector")
 
 	connectLogger.Debug("checking if connector exists in cluster")
 	existingConnectors, resp, err := c.client.GetConnector(connector.Name)
+	connectLogger.WithField("response", resp).Trace("get connector response")
+
 	if err != nil {
-		if !connect.IsNotFound(err) {
-			return errors.Wrapf(err, "getting existing connector from cluster")
+		if connect.IsNotFound(err) {
+			return c.handleNewConnector(connector, connectLogger)
 		}
+		return errors.Wrapf(err, "getting existing connector from cluster")
 	}
 
-	if resp.StatusCode == http.StatusNotFound {
-		connectLogger.Info("connector doesn't exist, creating")
-		_, err = c.client.CreateConnector(connector)
-		if err != nil {
-			connectLogger.WithError(err).Debug("error creating connector")
-			return errors.Wrap(err, "creating connector")
-		}
-		//TODO: handle API error
+	if existingConnectors != nil {
+		return c.handleExistingConnector(connector, existingConnectors, connectLogger)
+	}
 
-		connectLogger.Info("created connector sucessfully")
+	connectLogger.Warn("unexpected situation, ignoring connector")
+	return nil
+}
+
+func (c *ConnectorManager) handleExistingConnector(connector *connect.Connector, existingConnector *connect.Connector, logger *log.Entry) error {
+	logger.Debug("connector already exists")
+
+	if existingConnector.ConfigEqual(connector) {
+		logger.Debug("connector configuration is the same, no action needed")
 		return nil
 	}
 
-	if diff := cmp.Diff(connector, existingConnectors); diff != "" {
-		connectLogger.Infof("Diff detected in connector config %s", diff)
-		// TODO: update the connector
+	logger.Info("connector configuration differs, updating")
+	_, resp, err := c.client.UpdateConnectorConfig(existingConnector.Name, connector.Config)
+	logger.WithField("response", resp).Trace("update connector config response")
+
+	if err != nil {
+		logger.WithError(err).Debugf("error updating connector config: %v", connector.Config)
+		return errors.Wrap(err, "updating connector config")
 	}
 
-	connectLogger.Info("reconciled connector")
+	//TODO: handle API errors
+
+	logger.Info("connector config updated")
 	return nil
+}
+
+func (c *ConnectorManager) handleNewConnector(connector *connect.Connector, logger *log.Entry) error {
+	logger.Info("connector doesn't exist, creating")
+	resp, err := c.client.CreateConnector(connector)
+	logger.WithField("response", resp).Trace("create connector response")
+
+	if err != nil {
+		logger.WithError(err).Debug("error creating connector")
+		return errors.Wrap(err, "creating connector")
+	}
+
+	//TODO: handle API error
+
+	logger.Info("created connector successfully")
+	return nil
+}
+
+func containsConnector(connectorName string, connectors []*connect.Connector) bool {
+	for _, c := range connectors {
+		if c.Name == connectorName {
+			return true
+		}
+	}
+	return false
 }

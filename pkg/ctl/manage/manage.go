@@ -25,8 +25,8 @@ func Command() *cobra.Command {
 
 	// Add persistent flags that apply to all sub commands
 	manageCmd.PersistentFlags().StringVarP(&clusterURL, "cluster", "c", "", "The URL of the connect cluster to manage (required)")
-	manageCmd.MarkPersistentFlagRequired("cluster")
-	viper.BindPFlag("cluster", manageCmd.PersistentFlags().Lookup("cluster"))
+	_ = manageCmd.MarkPersistentFlagRequired("cluster")
+	_ = viper.BindPFlag("cluster", manageCmd.PersistentFlags().Lookup("cluster"))
 
 	// Add subcommands
 	manageCmd.AddCommand(manageConnectorsCmd())
