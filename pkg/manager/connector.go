@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/90poe/connectctl/pkg/connect"
-	"github.com/90poe/connectctl/pkg/version"
+	"github.com/90poe/connectctl/pkg/client/connect"
+	"github.com/90poe/connectctl/internal/version"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

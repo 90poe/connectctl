@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/90poe/connectctl/pkg/ctl/manage"
-	"github.com/90poe/connectctl/pkg/ctl/restart"
-	"github.com/90poe/connectctl/pkg/logging"
-	"github.com/90poe/connectctl/pkg/version"
+	"github.com/90poe/connectctl/internal/ctl/manage"
+	"github.com/90poe/connectctl/internal/ctl/restart"
+	"github.com/90poe/connectctl/internal/logging"
+	"github.com/90poe/connectctl/internal/version"
 
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"

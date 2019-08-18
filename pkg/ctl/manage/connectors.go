@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/90poe/connectctl/pkg/connect"
+	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
 	signals "github.com/90poe/connectctl/pkg/signal"
 
