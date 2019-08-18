@@ -12,5 +12,6 @@ type Config struct {
 	SyncPeriod time.Duration
 	AllowPurge bool
 
-	Logger *log.Entry
+	Logger  *log.Entry
+	Version string
 }

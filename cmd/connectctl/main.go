@@ -5,8 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/90poe/connectctl/internal/ctl/manage"
-	"github.com/90poe/connectctl/internal/ctl/restart"
+	"github.com/90poe/connectctl/internal/ctl/connectors"
 	"github.com/90poe/connectctl/internal/logging"
 	"github.com/90poe/connectctl/internal/version"
 
@@ -49,8 +48,7 @@ func main() {
 	_ = viper.BindPFlag("logfile", rootCmd.PersistentFlags().Lookup("logfile"))
 	viper.SetDefault("loglevel", "INFO")
 
-	rootCmd.AddCommand(manage.Command())
-	rootCmd.AddCommand(restart.Command())
+	rootCmd.AddCommand(connectors.Command())
 
 	cobra.OnInitialize(initConfig)
 
