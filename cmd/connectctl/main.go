@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/90poe/connectctl/internal/ctl/connectors"
+	"github.com/90poe/connectctl/internal/ctl/version"
 	"github.com/90poe/connectctl/internal/logging"
-	"github.com/90poe/connectctl/internal/version"
 
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -32,7 +32,7 @@ func main() {
 				fmt.Println(err)
 				os.Exit(1)
 			}
-			log.Infof("connectctl, %s", version.ToString())
+			log.Info("connectctl, a Kafka Connect CLI\n")
 		},
 		Run: func(c *cobra.Command, _ []string) {
 			_ = c.Help()
@@ -49,6 +49,7 @@ func main() {
 	viper.SetDefault("loglevel", "INFO")
 
 	rootCmd.AddCommand(connectors.Command())
+	rootCmd.AddCommand(version.Command())
 
 	cobra.OnInitialize(initConfig)
 
