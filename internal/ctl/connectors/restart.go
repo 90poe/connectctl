@@ -6,35 +6,38 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-var (
-	connectors []string
-)
+type restartConnectorsCmdParams struct {
+	ClusterURL string
+	Connectors []string
+}
 
 // Command creates the tehe management commands
 func restartConnectorsCmd() *cobra.Command {
+	params := &restartConnectorsCmdParams{}
+
 	restartCmd := &cobra.Command{
 		Use:   "restart",
 		Short: "Restart connectors in a cluster",
 		Long:  "",
-		Run:   doRestartConnectors,
+		Run: func(cmd *cobra.Command, _ []string) {
+			doRestartConnectors(cmd, params)
+		},
 	}
 
-	restartCmd.Flags().StringArrayVarP(&connectors, "connectors", "n", []string{}, "The connect names to restart (if not specified all connectors will be restarted)")
-	_ = viper.BindPFlag("connectors", restartCmd.PersistentFlags().Lookup("connectors"))
+	addCommonConnectorsFlags(restartCmd, &params.ClusterURL)
+	addConnectorNamesFlags(restartCmd, &params.Connectors)
 
 	return restartCmd
 }
 
-func doRestartConnectors(cmd *cobra.Command, args []string) {
-	clusterLogger := log.WithField("cluster", clusterURL)
-	clusterLogger.Debug("executing manage connectors command")
+func doRestartConnectors(_ *cobra.Command, params *restartConnectorsCmdParams) {
+	clusterLogger := log.WithField("cluster", params.ClusterURL)
+	clusterLogger.Infof("restarting connectors: %s", params.Connectors)
 
 	config := &manager.Config{
-		ClusterURL: clusterURL,
-		Logger:     clusterLogger,
+		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
 	}
 	clusterLogger.WithField("config", config).Trace("restart connectors configuration")
@@ -44,7 +47,7 @@ func doRestartConnectors(cmd *cobra.Command, args []string) {
 		clusterLogger.WithError(err).Fatalln("error creating connectors manager")
 	}
 
-	err = mngr.Restart(connectors)
+	err = mngr.Restart(params.Connectors)
 	if err != nil {
 		clusterLogger.WithError(err).Fatal("error restarting connectors")
 	}

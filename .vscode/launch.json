@@ -12,8 +12,8 @@
             "program": "${workspaceRoot}/cmd/connectctl",
             "env": {},
             "args": [
-                "manage",
                 "connectors",
+                "manage",
                 "--cluster",
                 "http://localhost:8083",
                 "--files",
@@ -34,8 +34,8 @@
             "program": "${workspaceRoot}/cmd/connectctl",
             "env": {},
             "args": [
-                "manage",
                 "connectors",
+                "manage",
                 "--cluster",
                 "http://localhost:8083",
                 "--files",
@@ -55,8 +55,8 @@
             "program": "${workspaceRoot}/cmd/connectctl",
             "env": {},
             "args": [
-                "manage",
                 "connectors",
+                "manage",
                 "--cluster",
                 "http://localhost:8083",
                 "--directory",
@@ -76,11 +76,30 @@
             "program": "${workspaceRoot}/cmd/connectctl",
             "env": {},
             "args": [
+                "connectors",
                 "restart",
                 "--cluster",
                 "http://localhost:8083",
                 "--loglevel",
                 "TRACE"
+            ]
+        },
+        {
+            "name": "Launch (list)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceRoot}/cmd/connectctl",
+            "env": {},
+            "args": [
+                "connectors",
+                "list",
+                "--cluster",
+                "http://localhost:8083",
+                "--loglevel",
+                "TRACE",
+                "--output",
+                "table"
             ]
         }
     ]

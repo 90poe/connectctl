@@ -5,6 +5,7 @@ import (
 	"os/signal"
 )
 
+//nolint:gochecknoglobals
 var onlyOneSignalHandler = make(chan struct{})
 
 // SetupSignalHandler registered for SIGTERM and SIGINT. A stop channel is returned

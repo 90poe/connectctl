@@ -18,71 +18,72 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	definitionFiles []string
-	syncPeriod      time.Duration
-	allowPurge      bool
-	directory       string
-)
+type manageConnectorsCmdParams struct {
+	ClusterURL string
+	Files      []string
+	Directory  string
+	SyncPeriod time.Duration
+	AllowPurge bool
+}
 
 func manageConnectorsCmd() *cobra.Command {
 
-	cmd := &cobra.Command{
-		Use:   "connectors",
+	params := &manageConnectorsCmdParams{}
+
+	manageCmd := &cobra.Command{
+		Use:   "manage",
 		Short: "Actively manage connectors in a Kafka Connect cluster",
 		Long:  "",
-		Run:   doManageConnectors,
+		Run: func(cmd *cobra.Command, _ []string) {
+			doManageConnectors(cmd, params)
+		},
 	}
 
-	cmd.Flags().StringArrayVarP(&definitionFiles, "files", "f", []string{}, "The connector definitions files (Required if --directory not specified)")
-	_ = viper.BindPFlag("files", cmd.PersistentFlags().Lookup("files"))
+	addCommonConnectorsFlags(manageCmd, &params.ClusterURL)
+	addDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory)
 
-	cmd.Flags().StringVarP(&directory, "directory", "d", "", "The directory containing the connector definitions files (Required if --files not specified)")
-	_ = viper.BindPFlag("directory", cmd.PersistentFlags().Lookup("directory"))
+	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", 5*time.Minute, "How often to sync with the connect cluster. Defaults to 5 minutes")
+	_ = viper.BindPFlag("sync-period", manageCmd.PersistentFlags().Lookup("sync-period"))
 
-	cmd.Flags().DurationVarP(&syncPeriod, "sync-period", "s", 5*time.Minute, "How often to sync with the connect cluster. Defaults to 5 minutes")
-	_ = viper.BindPFlag("sync-period", cmd.PersistentFlags().Lookup("sync-period"))
+	manageCmd.Flags().BoolVarP(&params.AllowPurge, "allow-purge", "", false, "If true it will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
+	_ = viper.BindPFlag("allow-purge", manageCmd.PersistentFlags().Lookup("allow-purge"))
 
-	cmd.Flags().BoolVarP(&allowPurge, "allow-purge", "", false, "If true it will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
-	_ = viper.BindPFlag("allow-purge", cmd.PersistentFlags().Lookup("allow-purge"))
-
-	return cmd
+	return manageCmd
 }
 
-func doManageConnectors(cmd *cobra.Command, args []string) {
-	clusterLogger := log.WithField("cluster", clusterURL)
+func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
+	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Debug("executing manage connectors command")
 
-	err := checkConfig()
+	err := checkConfig(params)
 	if err != nil {
 		clusterLogger.WithError(err).Fatalln("Error with configuration")
 	}
 
 	var source manager.ConnectorSource
-	if definitionFiles != nil {
-		source = filesSource(&definitionFiles)
+	if params.Files != nil {
+		source = filesSource(&params.Files)
 	}
-	if directory != "" {
-		source = directorySource(&directory)
+	if params.Directory != "" {
+		source = directorySource(&params.Directory)
 	}
 
 	stopCh := signals.SetupSignalHandler()
 
 	config := &manager.Config{
-		ClusterURL: clusterURL,
-		SyncPeriod: syncPeriod,
-		Logger:     clusterLogger,
-		AllowPurge: allowPurge,
+		ClusterURL: params.ClusterURL,
+		SyncPeriod: params.SyncPeriod,
+		AllowPurge: params.AllowPurge,
 		Version:    version.Version,
 	}
-	clusterLogger.WithField("config", config).Trace("manage connectors confirguration")
+	clusterLogger.WithField("config", config).Trace("manage connectors configuration")
 
 	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
 		clusterLogger.WithError(err).Fatalln("Error creating connectors manager")
 	}
 
-	if err := mngr.Run(source, stopCh); err != nil {
+	if err := mngr.Manage(source, stopCh); err != nil {
 		clusterLogger.WithError(err).Fatalln("Error running connector manager")
 	}
 
@@ -130,12 +131,12 @@ func directorySource(dir *string) manager.ConnectorSource {
 	}
 }
 
-func checkConfig() error {
-	if len(definitionFiles) == 0 && directory == "" {
+func checkConfig(params *manageConnectorsCmdParams) error {
+	if len(params.Files) == 0 && params.Directory == "" {
 		return errors.New("you must supply a list of files using --files or a directory that contains files using --directory")
 	}
 
-	if len(definitionFiles) != 0 && directory != "" {
+	if len(params.Files) != 0 && params.Directory != "" {
 		return errors.New("you can't supply a list of files and a directory that contains files. Use --files OR --directory")
 	}
 

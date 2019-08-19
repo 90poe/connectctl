@@ -2,6 +2,7 @@ package manager
 
 import "github.com/pkg/errors"
 
+// Restart will restart a number of connectors in a cluster
 func (c *ConnectorManager) Restart(connectors []string) error {
 	if len(connectors) == 0 {
 		return c.restartAllConnectors()
