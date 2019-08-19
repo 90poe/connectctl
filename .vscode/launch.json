@@ -101,6 +101,24 @@
                 "--output",
                 "table"
             ]
+        },
+        {
+            "name": "Launch (list plugins)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceRoot}/cmd/connectctl",
+            "env": {},
+            "args": [
+                "plugins",
+                "list",
+                "--cluster",
+                "http://localhost:8083",
+                "--loglevel",
+                "TRACE",
+                "--output",
+                "table"
+            ]
         }
     ]
 }
