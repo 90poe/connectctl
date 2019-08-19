@@ -2,6 +2,7 @@ package connectors
 
 import (
 	"github.com/90poe/connectctl/internal/version"
+	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/pkg/manager"
 
 	log "github.com/sirupsen/logrus"
@@ -25,8 +26,8 @@ func resumeConnectorsCmd() *cobra.Command {
 		},
 	}
 
-	addCommonConnectorsFlags(resumeCmd, &params.ClusterURL)
-	addConnectorNamesFlags(resumeCmd, &params.Connectors)
+	ctl.AddCommonConnectorsFlags(resumeCmd, &params.ClusterURL)
+	ctl.AddConnectorNamesFlags(resumeCmd, &params.Connectors)
 
 	return resumeCmd
 }

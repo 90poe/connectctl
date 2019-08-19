@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
@@ -39,8 +40,8 @@ func manageConnectorsCmd() *cobra.Command {
 		},
 	}
 
-	addCommonConnectorsFlags(manageCmd, &params.ClusterURL)
-	addDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory)
+	ctl.AddCommonConnectorsFlags(manageCmd, &params.ClusterURL)
+	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory)
 
 	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", 5*time.Minute, "How often to sync with the connect cluster. Defaults to 5 minutes")
 	_ = viper.BindPFlag("sync-period", manageCmd.PersistentFlags().Lookup("sync-period"))

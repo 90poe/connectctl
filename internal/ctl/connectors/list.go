@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/90poe/connectctl/internal/version"
+	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/pkg/manager"
 
 	"github.com/jedib0t/go-pretty/table"
@@ -30,8 +31,8 @@ func listConnectorsCmd() *cobra.Command {
 		},
 	}
 
-	addCommonConnectorsFlags(listCmd, &params.ClusterURL)
-	addOutputFlags(listCmd, &params.Output)
+	ctl.AddCommonConnectorsFlags(listCmd, &params.ClusterURL)
+	ctl.AddOutputFlags(listCmd, &params.Output)
 
 	return listCmd
 }
