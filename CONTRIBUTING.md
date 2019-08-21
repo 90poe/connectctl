@@ -40,18 +40,15 @@ This project is written in Go. To be able to contribute you will need:
 2. Make sure that `$(go env GOPATH)/bin` is in your shell's `PATH`. You can do so by
    running `export PATH="$(go env GOPATH)/bin:$PATH"`
 
-#### 2. Fork and clone the repo
-
-Make a fork of this repository and clone it by running:
+3. Fork this repository and clone it by running:
 
 ```bash
 git clone git@github.com:<yourusername>/connectlctl.git
 ```
 
-It is not recommended to clone under your `GOPATH` (if you define one). Otherwise, you will need to set
-`GO111MODULE=on` explicitly.
+> As the project uses modules its recommeneded that you NOT clone under the `GOPATH`.
 
-#### 3. Run the tests and build
+#### 2. Test and build
 
 Make sure you can run the tests and build the binary.
 
@@ -61,51 +58,35 @@ make test
 make build
 ```
 
-#### 4. Write your feature
+#### 3. Find a feature to work on
 
-- Find an [issue](https://github.com/90poe/connectctl/issues) to work on or
-  create your own. If you are a new contributor take a look at issues marked
-  with [good first issue](https://github.com/90poe/connectctl/labels/good%20first%20issue).
+- Look at the existing [issues](https://github.com/90poe/connectctl/issues) to see if there is anything
+you would like to work on. If don't see anything then feel free to create your own feature request.
 
-- Then create a topic branch from where you want to base your work (usually branched from master):
+- If you are a new contributor then take a look at the issues marked 
+with [good first issue](https://github.com/90poe/connectctl/labels/good%20first%20issue).
+
+- Make your code changes within a feature branch:
 
     ```bash
     git checkout -b <feature-name>
     ```
 
-- Write your feature. Make commits of logical units and make sure your
-  commit messages are in the [proper format](#format-of-the-commit-message).
+- Try to commit changes in logical units with a commit message in this [format](#format-of-the-commit-message). Remember
+to signoff your commits.
 
-- If needed, update the documentation, either in the [README](README.md) or in the [docs](docs/) folder.
+- Don't forget to update the docs if relevent. The [README](README.md) or the [docs](docs/) folder is where docs usually live.
 
-- Make sure the tests are running successfully.
+- Make sure the tests pass and that there are no linting problems.
 
-#### 5. Submit a pull request
+#### 4. Create a pull request
 
-Push your changes to your fork and submit a pull request to the original repository. If your PR is a work in progress
-then make sure you prefix the title with `WIP: `. This lets everyone know that this is still being worked on. Once its
-ready remove the `WIP: ` title prefix and where possible squash your commits.
+Push your changes to your fork and then create a pull request to origin. Where possible use the PR template.
 
-```bash
-git push <username> <feature-name>
-```
+You can mark a PR as wotk in progress by prefixing the title of your PR with `WIP: `.
 
-## Acceptance policy
 
-These things will make a PR more likely to be accepted:
-
-- a well-described requirement
-- tests for new code
-- tests for old code!
-- new code and tests follow the conventions in old code and tests
-- a good commit message (see below)
-
-In general, we will merge a PR once a maintainer has reviewed and approved it.
-Trivial changes (e.g., corrections to spelling) may get waved through.
-For substantial changes, more people may become involved, and you might get asked to resubmit the PR or divide the
-changes into more than one PR.
-
-### Format of the Commit Message
+### Commit Message Format
 
 We follow a rough convention for commit messages that is designed to answer two
 questions: what changed and why. The subject line should feature the what and
