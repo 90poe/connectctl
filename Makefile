@@ -5,7 +5,6 @@ git_commit := $(shell git describe --dirty --always)
 build:
 	CGO_ENABLED=0 go build -ldflags "-X github.com/90poe/connectctl/pkg/version.GitHash=$(git_commit) -X github.com/90poe/connectctl/pkg/version.BuildDate=$(built_at)" ./cmd/connectctl
 
-
 .PHONY: install-deps
 install-deps:
 	go mod download
@@ -14,6 +13,10 @@ install-deps:
 .PHONY: local-release
 local-release:
 	goreleaser --snapshot --skip-publish --rm-dist
+
+.PHONY: test
+test:
+	@go test -v -covermode=count -coverprofile=coverage.out ./...
 
 .PHONY: lint
 lint:
