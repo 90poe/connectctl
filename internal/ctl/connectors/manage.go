@@ -20,11 +20,12 @@ import (
 )
 
 type manageConnectorsCmdParams struct {
-	ClusterURL string
-	Files      []string
-	Directory  string
-	SyncPeriod time.Duration
-	AllowPurge bool
+	ClusterURL  string
+	Files       []string
+	Directory   string
+	SyncPeriod  time.Duration
+	AllowPurge  bool
+	AutoRestart bool
 }
 
 func manageConnectorsCmd() *cobra.Command {
@@ -49,6 +50,9 @@ func manageConnectorsCmd() *cobra.Command {
 	manageCmd.Flags().BoolVarP(&params.AllowPurge, "allow-purge", "", false, "If true it will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
 	_ = viper.BindPFlag("allow-purge", manageCmd.PersistentFlags().Lookup("allow-purge"))
 
+	manageCmd.Flags().BoolVar(&params.AutoRestart, "auto-restart", false, "if supplied tasks that are failed with automatically be restarted")
+	_ = viper.BindPFlag("auto-restart", manageCmd.PersistentFlags().Lookup("auto-restart"))
+
 	return manageCmd
 }
 
@@ -72,10 +76,11 @@ func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
 	stopCh := signals.SetupSignalHandler()
 
 	config := &manager.Config{
-		ClusterURL: params.ClusterURL,
-		SyncPeriod: params.SyncPeriod,
-		AllowPurge: params.AllowPurge,
-		Version:    version.Version,
+		ClusterURL:  params.ClusterURL,
+		SyncPeriod:  params.SyncPeriod,
+		AllowPurge:  params.AllowPurge,
+		AutoRestart: params.AutoRestart,
+		Version:     version.Version,
 	}
 	clusterLogger.WithField("config", config).Trace("manage connectors configuration")
 

@@ -149,6 +149,16 @@ func (c *Client) GetConnectorStatus(name string) (*ConnectorStatus, *http.Respon
 	return status, response, err
 }
 
+// GetConnectorTaskStatus gets the status of task for a connector.
+//
+// See: https://docs.confluent.io/current/connect/references/restapi.html#get--connectors-(string-name)-tasks-(int-taskid)-status
+func (c *Client) GetConnectorTaskStatus(name string, taskID int) (*TaskState, *http.Response, error) {
+	path := fmt.Sprintf("connectors/%v/tasks/%v/status", name, taskID)
+	status := new(TaskState)
+	respnse, err := c.get(path, status)
+	return status, respnse, err
+}
+
 // UpdateConnectorConfig updates configuration for an existing connector with
 // the given name, returning the new state of the Connector.
 //
@@ -195,5 +205,13 @@ func (c *Client) ResumeConnector(name string) (*http.Response, error) {
 // See http://docs.confluent.io/current/connect/userguide.html#post--connectors-(string-name)-restart
 func (c *Client) RestartConnector(name string) (*http.Response, error) {
 	path := fmt.Sprintf("connectors/%v/restart", name)
+	return c.doRequest("POST", path, nil, nil)
+}
+
+// RestartConnectorTask restarts a tasks for a connector.
+//
+// See https://docs.confluent.io/current/connect/references/restapi.html#post--connectors-(string-name)-tasks-(int-taskid)-restart
+func (c *Client) RestartConnectorTask(name string, taskID int) (*http.Response, error) {
+	path := fmt.Sprintf("connectors/%v/tasks/%v/restart", name, taskID)
 	return c.doRequest("POST", path, nil, nil)
 }
