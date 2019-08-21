@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/internal/ctl"
+	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/manager"
 
 	"github.com/jedib0t/go-pretty/table"

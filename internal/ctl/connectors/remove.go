@@ -1,8 +1,8 @@
 package connectors
 
 import (
-	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/internal/ctl"
+	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/manager"
 
 	log "github.com/sirupsen/logrus"

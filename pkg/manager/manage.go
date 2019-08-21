@@ -48,17 +48,19 @@ func (c *ConnectorManager) reconcileConnectors(connectors []*connect.Connector) 
 		}
 	}
 
-	err := c.checkConnectorStatus(connectors)
-	if err != nil {
-		return errors.Wrap(err, "checking connector status")
+	if c.config.AutoRestart {
+		err := c.autoRestart(connectors)
+		if err != nil {
+			return errors.Wrap(err, "checking connector status")
+		}
 	}
 
 	c.logger.Debug("finished reconciling connectors")
 	return nil
 }
 
-func (c *ConnectorManager) checkConnectorStatus(connectors []*connect.Connector) error {
-	c.logger.Debug("checking connectors status")
+func (c *ConnectorManager) autoRestart(connectors []*connect.Connector) error {
+	c.logger.Debug("auto restarting connectors")
 
 	for _, connector := range connectors {
 		connectLogger := c.logger.WithField("connector", connector.Name)
@@ -73,24 +75,33 @@ func (c *ConnectorManager) checkConnectorStatus(connectors []*connect.Connector)
 
 		connectLogger.Debugf("connector state is %s", status.Connector.State)
 
-		switch status.Connector.State {
-		case "RUNNING":
-			break
-		case "UNASSIGNED":
-			break
-		case "PAUSED":
-			break
-		case "FAILED":
-			connectLogger.Error("connector has failed, restarting")
-			//TODO: restart
+		// Valid statuses are: RUNNING, UNASSIGNED, PAUSED, FAILED
+		if status.Connector.State == "FAILED" {
+			connectLogger.Info("connector failed, attempting to restart")
+			errRestart := c.restartConnector(connector.Name)
+			if errRestart != nil {
+				connectLogger.Warn("failed to restart connector")
+			} else {
+				connectLogger.Info("connector restarted")
+			}
+			continue
 		}
 
-		// TODO loop around the tasks
+		// If the connector isn't failed it could have some tasks that are failed
 		for _, taskState := range status.Tasks {
 			taskLogger := connectLogger.WithField("taskid", taskState.ID)
 			taskLogger.Debugf("task state is %s", taskState.State)
+			if taskState.State == "FAILED" {
+				taskLogger.Info("task failed, attempting to restart")
+				resp, errRestart := c.client.RestartConnectorTask(connector.Name, taskState.ID)
+				taskLogger.WithField("response", resp).Trace("restart connector task response")
+				if errRestart != nil {
+					taskLogger.Warn("failed to restart connector")
+				} else {
+					taskLogger.Info("restarted connector task")
+				}
+			}
 		}
-
 	}
 
 	c.logger.Debug("finished checking connectors status")

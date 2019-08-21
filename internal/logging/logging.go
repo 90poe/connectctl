@@ -39,5 +39,8 @@ func Configure(logLevel string, logFile string) error {
 		FullTimestamp: true,
 	})
 
+	// Set log output to stderr
+	logrus.SetOutput(os.Stderr)
+
 	return nil
 }
