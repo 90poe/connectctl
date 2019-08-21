@@ -88,37 +88,42 @@ You can mark a PR as wotk in progress by prefixing the title of your PR with `WI
 
 ### Commit Message Format
 
-We follow a rough convention for commit messages that is designed to answer two
-questions: what changed and why. The subject line should feature the what and
-the body of the commit should describe the why.
+We would like to follow the **Convential Commits** format for commit messsages. The full specification can be 
+read [here](https://www.conventionalcommits.org/en/v1.0.0-beta.3/). The format is:
 
-```text
-Added restart connectors
+```
+<type>[optional scope]: <description>
 
-Added a new subcommand for restarting connectors. It can be called in 2 ways.
-To restart all connecors in a cluster:
+[optional body]
 
-connectctl connectors restart
-
-And to restart only specific connectors:
-
-connectctl connectors restart connector1,connectors2
-
-
-Issue #2
+[optional footer]
 ```
 
-The format can be described more formally as follows:
+Where `<type>` is one of the following:
+* `feat` - a new feature
+* `fix` - a bug fix
+* `chore` - changes to the build pocess, code generation or anything that doesn't match elsewhere
+* `docs` - documentation only changes
+* `style` - changes that don't affect the meaning of the code (i.e. code formatting)
+* `refactor` - a change that doesn't fix a feature or bug
+* `test` - changes to tests only.
+
+The `scope` can be a pkg name but is optional.
+The `body` should include details of what changed and why. If there is a breaking change then the `body` should start with the 
+following: `BREAKING CHANGE`.
+
+The footer should include any related github issue numbers.
+
+An example:
 
 ```text
-<short title for what changed>
-<BLANK LINE>
-<why this change was made and what changed>
-<BLANK LINE>
-<footer>
+feat: Added connector status command
+
+A new command has been added to show the status of tasks within a connector. The
+command will return the number of failed tasks as the exit code.
+
+Fixes: #123
 ```
 
-The first line is the subject and should be no longer than 70 characters, the
-second line is always blank, and other lines should be wrapped at 80 characters.
-This allows the message to be easier to read on GitHub as well as in various git tools.
+A tool like [Commitizen](https://github.com/commitizen/cz-cli) can be used to help with formatting commit messages.
 
