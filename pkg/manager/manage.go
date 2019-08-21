@@ -17,18 +17,30 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 	for {
 		select {
 		case <-syncChannel:
-			connectors, err := source()
+			err := c.Sync(source)
 			if err != nil {
-				return errors.Wrap(err, "getting connector configurations")
-			}
-			if err = c.reconcileConnectors(connectors); err != nil {
-				return errors.Wrap(err, "reconciling connectors")
+				return errors.Wrap(err, "synchronising connectors for source")
 			}
 		case <-stopCH:
 			c.logger.Info("Shutting down connector manager")
 			return nil
 		}
 	}
+}
+
+// Sync will synchronise the desirce and actual state of connectors in a cluster
+func (c *ConnectorManager) Sync(source ConnectorSource) error {
+	c.logger.Info("synchronising connectors")
+
+	connectors, err := source()
+	if err != nil {
+		return errors.Wrap(err, "getting connector configurations")
+	}
+	if err = c.reconcileConnectors(connectors); err != nil {
+		return errors.Wrap(err, "synchronising connectors")
+	}
+
+	return nil
 }
 
 func (c *ConnectorManager) reconcileConnectors(connectors []*connect.Connector) error {

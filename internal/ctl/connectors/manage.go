@@ -26,6 +26,7 @@ type manageConnectorsCmdParams struct {
 	SyncPeriod  time.Duration
 	AllowPurge  bool
 	AutoRestart bool
+	RunOnce     bool
 }
 
 func manageConnectorsCmd() *cobra.Command {
@@ -35,7 +36,11 @@ func manageConnectorsCmd() *cobra.Command {
 	manageCmd := &cobra.Command{
 		Use:   "manage",
 		Short: "Actively manage connectors in a Kafka Connect cluster",
-		Long:  "",
+		Long: `This command will add/delete/update connectors in a destination 
+		Kafa Connect cluster based on a list of desired connectors which are specified
+		as a list of files or all files in a directory. The command runs continuously and
+		will sync desired state with actual state based on the --sync-period flag. But
+		if you specify --once then it will sync once and then exit.`,
 		Run: func(cmd *cobra.Command, _ []string) {
 			doManageConnectors(cmd, params)
 		},
@@ -52,6 +57,9 @@ func manageConnectorsCmd() *cobra.Command {
 
 	manageCmd.Flags().BoolVar(&params.AutoRestart, "auto-restart", false, "if supplied tasks that are failed with automatically be restarted")
 	_ = viper.BindPFlag("auto-restart", manageCmd.PersistentFlags().Lookup("auto-restart"))
+
+	manageCmd.Flags().BoolVar(&params.RunOnce, "once", false, "if supplied sync will run once and command will exit")
+	_ = viper.BindPFlag("once", manageCmd.PersistentFlags().Lookup("once"))
 
 	return manageCmd
 }
@@ -73,8 +81,6 @@ func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
 		source = directorySource(&params.Directory)
 	}
 
-	stopCh := signals.SetupSignalHandler()
-
 	config := &manager.Config{
 		ClusterURL:  params.ClusterURL,
 		SyncPeriod:  params.SyncPeriod,
@@ -89,8 +95,17 @@ func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
 		clusterLogger.WithError(err).Fatalln("Error creating connectors manager")
 	}
 
-	if err := mngr.Manage(source, stopCh); err != nil {
-		clusterLogger.WithError(err).Fatalln("Error running connector manager")
+	if params.RunOnce {
+		if err := mngr.Sync(source); err != nil {
+			clusterLogger.WithError(err).Fatalln("Error running connector sync")
+		}
+
+	} else {
+		stopCh := signals.SetupSignalHandler()
+
+		if err := mngr.Manage(source, stopCh); err != nil {
+			clusterLogger.WithError(err).Fatalln("Error running connector manager")
+		}
 	}
 
 	clusterLogger.Info("finished executing manage connectors command")
