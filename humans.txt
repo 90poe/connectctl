@@ -1,0 +1,29 @@
+                                          __          __  .__   
+  ____  ____   ____   ____   ____   _____/  |_  _____/  |_|  |  
+_/ ___\/  _ \ /    \ /    \_/ __ \_/ ___\   __\/ ___\   __\  |  
+\  \__(  <_> )   |  \   |  \  ___/\  \___|  | \  \___|  | |  |__
+ \___  >____/|___|  /___|  /\___  >\___  >__|  \___  >__| |____/
+     \/           \/     \/     \/     \/          \/           
+
+
+/* Humans */
+Andy        @the4thamigo-uk     maintainer
+Richard     @richardcase        maintainer
+
+/* Organizations */
+90poe       https://www.openocean.studio/
+
+/* Thanks */
+Thanks to 90poe for giving birth to this project and allowing it to be open sourced.
+
+Also, thanks to all contributors and users (assuming there are more) of connectctl.
+
+/* Site */
+
+Last update: -
+Language: English
+Doctype: HTML5
+IDE: VIM/VsCode/Atom
+Generator: Jekyll (Ruby)
+SCM: Git
+Hosting: GitHub
