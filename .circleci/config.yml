@@ -19,7 +19,7 @@ workflows:
   any-commit:
     jobs:
       - buildtest:
-          filters:  
+          filters:
             tags:
               ignore: /.*/
   release:
