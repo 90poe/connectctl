@@ -23,4 +23,4 @@ lint:
 	./bin/golangci-lint run
 
 .PHONY: ci
-ci: build test lint
+ci: install-deps build test lint
