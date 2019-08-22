@@ -11,14 +11,15 @@ jobs:
       - image: circleci/golang:1.12
     steps:
       - checkout
-      - run: make ci
+      - run: make test
+      - run: make lint
       - run: curl -sL https://git.io/goreleaser | bash
 workflows:
   version: 2
   any-commit:
     jobs:
       - buildtest:
-          filters:
+          filters:  
             tags:
               ignore: /.*/
   release:
