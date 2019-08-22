@@ -19,8 +19,6 @@ workflows:
     jobs:
       - buildtest:
           filters:
-            branches:
-              ignore: master
             tags:
               ignore: /.*/
   release:
