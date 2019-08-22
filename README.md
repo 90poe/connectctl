@@ -1,5 +1,7 @@
 ## connectctl
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CircleCI](https://circleci.com/gh/90poe/connectctl/tree/master.svg?style=svg)](https://circleci.com/gh/90poe/connectctl/tree/master)
+![OSS Lifecycle](https://img.shields.io/osslifecycle/90poe/connectctl)
 
 
 A CLI for working with [Kafka Connect](https://docs.confluent.io/current/connect/index.html).
@@ -31,4 +33,4 @@ The code in `pkg/client/connect` is originally from [here](https://github.com/go
 
 ### License
 
-This project is licensed under the Apache 2.0 License.
+Copyright 2019 90poe.  This project is licensed under the Apache 2.0 License.
