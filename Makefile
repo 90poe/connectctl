@@ -21,3 +21,6 @@ test:
 .PHONY: lint
 lint:
 	./bin/golangci-lint run
+
+.PHONY: ci
+ci: install-deps build test lint

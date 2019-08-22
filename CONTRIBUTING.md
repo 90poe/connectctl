@@ -72,6 +72,8 @@ with [good first issue](https://github.com/90poe/connectctl/labels/good%20first%
     git checkout -b <feature-name>
     ```
 
+- Add yourself to [humans.txt](humans.txt) if this is your first contribution.
+
 - Try to commit changes in logical units with a commit message in this [format](#format-of-the-commit-message). Remember
 to signoff your commits.
 
@@ -88,7 +90,7 @@ You can mark a PR as wotk in progress by prefixing the title of your PR with `WI
 
 ### Commit Message Format
 
-We would like to follow the **Convential Commits** format for commit messsages. The full specification can be 
+We would like to follow the **Conventional Commits** format for commit messsages. The full specification can be 
 read [here](https://www.conventionalcommits.org/en/v1.0.0-beta.3/). The format is:
 
 ```
