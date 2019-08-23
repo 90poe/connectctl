@@ -17,6 +17,8 @@ install and how to install is covered [here](docs/installation.md).
 
 Details of the commands available can be read in the [cli documentation](docs/cli/connectctl.md).
 
+Documentation is also available via [ReadTheDocs](https://connectctl.readthedocs.io).
+
 ### Contributing
 
 We'd love you to contribute to the project. If you are interested in helping out please 
