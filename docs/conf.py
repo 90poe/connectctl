@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'connecctl'
-copyright = '2019, connectctl development tean'
+copyright = '2019, 90poe & connectctl development tean'
 author = 'connectl development team'
 
 
