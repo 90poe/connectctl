@@ -44,7 +44,7 @@ jobs:
             - "b2:1b:aa:03:24:de:cd:aa:aa:0d:f6:ad:be:c9:85:19"
       - run: 
           name: Deploy docs to gh-pages branch
-          command: gh-pages --dotfile --message "chore: docs published to GitHub Pages" --dist docs/_build/html
+          command: gh-pages --dotfile --message "chore - docs published to GitHub Pages" --dist docs/_build/html
 workflows:
   version: 2
   any-commit:
