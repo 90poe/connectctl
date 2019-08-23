@@ -15,3 +15,5 @@ bin/
 dist/
 
 coverage.out
+
+docs/build

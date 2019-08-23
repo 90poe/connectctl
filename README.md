@@ -12,18 +12,10 @@ A CLI for working with [Kafka Connect](https://docs.confluent.io/current/connect
 
 ### Getting started
 
-Install the CLI for your platform from the [releases page](https://github.com/90poe/connectctl/releases).
+The latest release can be found on the [releases page](https://github.com/90poe/connectctl/releases) and
+install and how to install is covered [here](docs/installation.md).
 
-Once installed run the cli from the terminal. You can see the available commands by running 
-the following:
-
-```bash
-connectctl help
-```
-
-There are 2 top level commands (each with their own sub-commands):
-- `connectctl connectors` - for operations relating to connectors in a Kafka Connect cluster
-- `connectctl plugins` - for operations relating to connector plugiuns in a Kafka Connect cluster
+Details of the commands available can be read in the [cli documentation](docs/cli/connectctl.md).
 
 ### Contributing
 
