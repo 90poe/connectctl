@@ -16,4 +16,4 @@ dist/
 
 coverage.out
 
-docs/build
+docs/_build

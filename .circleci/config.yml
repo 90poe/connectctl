@@ -11,10 +11,40 @@ jobs:
       - image: circleci/golang:1.12
     steps:
       - checkout
-      - run: make install-deps
-      - run: make test
-      - run: make lint
-      - run: curl -sL https://git.io/goreleaser | bash
+      - run: make release
+  docs-build:
+    docker:
+      - image: python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pip install -r docs/requirements.txt
+      - run:
+          name: Build docs
+          command: cd docs/ && make html
+      - persist_to_workspace:
+          root: docs/_build
+          paths: html
+  docs-deploy:
+    docker:
+      - image: node:8.10.0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: docs/_build
+      - run:
+          name: Install and configure dependencies
+          command: |
+            npm install -g gh-pages@2.1.1
+            git config user.email "ci-build@90poe.io"
+            git config user.name "ci-build"
+      - add_ssh_keys:
+          fingerprints:
+            - "b2:1b:aa:03:24:de:cd:aa:aa:0d:f6:ad:be:c9:85:19"
+      - run: 
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dotfile --message "chore: docs published to GitHub Pages" --dist docs/_build/html
 workflows:
   version: 2
   any-commit:
@@ -23,9 +53,27 @@ workflows:
           filters:
             tags:
               ignore: /.*/
+      - docs-build:
+          filters:
+            tags:
+              ignore: /.*/        
   release:
     jobs:
       - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - docs-build:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - docs-deploy:
+          requires:
+            - docs-build
           filters:
             branches:
               ignore: /.*/

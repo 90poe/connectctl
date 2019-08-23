@@ -14,6 +14,10 @@ install-deps:
 local-release:
 	goreleaser --snapshot --skip-publish --rm-dist
 
+.PHONY: release
+release: install-deps test lint
+	curl -sL https://git.io/goreleaser | bash
+
 .PHONY: test
 test:
 	@go test -v -covermode=count -coverprofile=coverage.out ./...
