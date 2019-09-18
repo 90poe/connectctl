@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'connecctl'
+project = 'connectctl'
 copyright = '2019, 90poe & connectctl development tean'
-author = 'connectl development team'
+author = 'connectctl development team'
 
 
 # -- General configuration ---------------------------------------------------

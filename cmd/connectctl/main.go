@@ -41,7 +41,7 @@ func main() {
 		},
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "", "", "Config file (default is $HOME/.connectl.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "", "", "Config file (default is $HOME/.connectctl.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "l", "", "Log level for the CLI (Optional)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "logfile", "", "", "A file to use for log output (Optional)")
 

@@ -43,7 +43,7 @@ This project is written in Go. To be able to contribute you will need:
 3. Fork this repository and clone it by running:
 
 ```bash
-git clone git@github.com:<yourusername>/connectlctl.git
+git clone git@github.com:<yourusername>/connectctl.git
 ```
 
 > As the project uses modules its recommeneded that you NOT clone under the `GOPATH`.
