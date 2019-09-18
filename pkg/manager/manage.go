@@ -28,7 +28,7 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 	}
 }
 
-// Sync will synchronise the desirce and actual state of connectors in a cluster
+// Sync will synchronise the desired and actual state of connectors in a cluster
 func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	c.logger.Info("synchronising connectors")
 

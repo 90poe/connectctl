@@ -19,11 +19,13 @@ func (e APIError) Error() string {
 	return fmt.Sprintf("%v (HTTP %d)", e.Message, e.Code)
 }
 
+// IsAPIError indicates if the error is an struct of type APIError
 func IsAPIError(err error) bool {
 	_, ok := err.(APIError)
 	return ok
 }
 
+// IsNotFound indicates if the error represents an HTTP 404 status code
 func IsNotFound(err error) bool {
 	apiErr, ok := err.(APIError)
 	if !ok {

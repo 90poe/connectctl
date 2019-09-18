@@ -9,7 +9,7 @@ var Version string
 // BuildDate specifies the date
 var BuildDate string
 
-// GitHash specifies the cimmit has associated with the build
+// GitHash specifies the commit has associated with the build
 var GitHash string
 
 // ToString will convert the version information to a string

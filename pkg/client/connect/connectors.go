@@ -9,7 +9,7 @@ import (
 	"reflect"
 )
 
-// A Connector represents a Kafka Connect connector instance.
+// Connector represents a Kafka Connect connector instance.
 //
 // See: http://docs.confluent.io/current/connect/userguide.html#connectors-tasks-and-workers
 type Connector struct {
@@ -36,7 +36,7 @@ func (c *Connector) ConfigEqual(other *Connector) bool {
 // See: http://docs.confluent.io/current/connect/userguide.html#configuring-connectors
 type ConnectorConfig map[string]string
 
-// A Task is a unit of work dispatched by a Connector to parallelize the work of
+// Task is a unit of work dispatched by a Connector to parallelize the work of
 // a data copy job.
 //
 // See: http://docs.confluent.io/current/connect/userguide.html#connectors-tasks-and-workers
@@ -45,7 +45,8 @@ type Task struct {
 	Config map[string]string `json:"config"`
 }
 
-// A TaskID // NOTE: Code originally from https://github.com/go-kafka/connectas two components, a numerical ID and a connector name by which the
+// TaskID
+// NOTE: Code originally from https://github.com/go-kafka/connect as two components, a numerical ID and a connector name by which the
 // ID is scoped.
 type TaskID struct {
 	ConnectorName string `json:"connector"`

@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// ConnectorSource will return a slice of the desired connector configurationbs
+// ConnectorSource will return a slice of the desired connector configuration
 type ConnectorSource func() ([]*connect.Connector, error)
 
 // ConnectorManager manages connectors in a Kafka Connect cluster

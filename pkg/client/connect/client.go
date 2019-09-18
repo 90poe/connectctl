@@ -24,7 +24,7 @@ const (
 	userAgentDefault = "90poe.io/connectctl/noversion"
 )
 
-// A Client manages communication with the Kafka Connect REST API.
+// Client manages communication with the Kafka Connect REST API.
 type Client struct {
 	host *url.URL // Base host URL for API requests.
 
