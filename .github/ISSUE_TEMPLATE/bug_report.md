@@ -23,7 +23,7 @@ A clear and concise description of what you expected to happen.
 **Version Information**
 Please include the output of the following command:
 
-`connectl version`
+`connectctl version`
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.

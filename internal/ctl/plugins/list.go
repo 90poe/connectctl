@@ -85,7 +85,6 @@ func printPluginsAsTable(plugins []*connect.Plugin, logger *log.Entry) {
 	t.AppendHeader(table.Row{"Class", "Type", "Version"})
 
 	for _, plugin := range plugins {
-
 		t.AppendRow(table.Row{
 			plugin.Class,
 			plugin.Type,

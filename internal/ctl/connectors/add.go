@@ -16,7 +16,6 @@ type addConnectorsCmdParams struct {
 }
 
 func addConnectorCmd() *cobra.Command {
-
 	params := &addConnectorsCmdParams{}
 
 	addCmd := &cobra.Command{

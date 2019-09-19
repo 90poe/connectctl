@@ -1,6 +1,6 @@
 # connectctl installation
 
-The contains details of how to install and uninstall connectl
+The contains details of how to install and uninstall connectctl
 
 ## Requirements
 

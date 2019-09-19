@@ -15,7 +15,6 @@ type removeConnectorsCmdParams struct {
 }
 
 func removeConnectorCmd() *cobra.Command {
-
 	params := &removeConnectorsCmdParams{}
 
 	removeCmd := &cobra.Command{

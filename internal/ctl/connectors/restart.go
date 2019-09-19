@@ -14,7 +14,7 @@ type restartConnectorsCmdParams struct {
 	Connectors []string
 }
 
-// Command creates the tehe management commands
+// Command creates the the management commands
 func restartConnectorsCmd() *cobra.Command {
 	params := &restartConnectorsCmdParams{}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/90poe/connectctl/internal/version"
 )
 
-// Command creates the tehe management commands
+// Command creates the the management commands
 func Command() *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",

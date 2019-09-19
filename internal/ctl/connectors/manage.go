@@ -30,7 +30,6 @@ type manageConnectorsCmdParams struct {
 }
 
 func manageConnectorsCmd() *cobra.Command {
-
 	params := &manageConnectorsCmdParams{}
 
 	manageCmd := &cobra.Command{
@@ -99,7 +98,6 @@ func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
 		if err := mngr.Sync(source); err != nil {
 			clusterLogger.WithError(err).Fatalln("Error running connector sync")
 		}
-
 	} else {
 		stopCh := signals.SetupSignalHandler()
 
