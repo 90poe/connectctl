@@ -10,37 +10,60 @@ import (
 func (c *ConnectorManager) GetAllConnectors() ([]*ConnectorWithState, error) {
 	c.logger.Debug("getting all connectors (with state)")
 
-	existing, resp, err := c.client.ListConnectors()
+	existing, err := c.ListConnectors()
+	if err != nil {
+		return nil, err
+	}
+
+	connectors := make([]*ConnectorWithState, len(existing))
+	for i, connectorName := range existing {
+		connector, err := c.GetConnector(connectorName)
+		if err != nil {
+			return nil, err
+		}
+		connectors[i] = connector
+	}
+
+	return connectors, nil
+}
+
+// GetConnectors returns information about a named connector in the cluster
+func (c *ConnectorManager) GetConnector(connectorName string) (*ConnectorWithState, error) {
+	connector, resp, err := c.client.GetConnector(connectorName)
+	c.logger.WithField("response", resp).Trace("get connector response")
+	if err != nil {
+		return nil, errors.Wrapf(err, "getting connector %s", connectorName)
+	}
+
+	connectorStatus, resp, err := c.client.GetConnectorStatus(connectorName)
+	c.logger.WithField("response", resp).Trace("get connector status response")
+	if err != nil {
+		return nil, errors.Wrapf(err, "getting connector status %s", connectorName)
+	}
+
+	withState := &ConnectorWithState{
+		Name:           connector.Name,
+		ConnectorState: connectorStatus.Connector,
+		Config:         connector.Config,
+		Tasks:          connectorStatus.Tasks,
+	}
+
+	return withState, nil
+}
+
+// ListConnectors returns the names of all connectors in the cluster
+func (c *ConnectorManager) ListConnectors() ([]string, error) {
+	connectors, resp, err := c.client.ListConnectors()
 	c.logger.WithField("response", resp).Trace("list connectors response")
 	if err != nil {
 		return nil, errors.Wrap(err, "getting existing connectors")
 	}
 
-	connectors := make([]*ConnectorWithState, len(existing))
-	for index, connectorName := range existing {
-		connector, resp, err := c.client.GetConnector(connectorName)
-		c.logger.WithField("response", resp).Trace("get connector response")
-		if err != nil {
-			return nil, errors.Wrapf(err, "getting connector %s", connectorName)
-		}
-
-		connectorStatus, resp, err := c.client.GetConnectorStatus(connectorName)
-		c.logger.WithField("response", resp).Trace("get connector status response")
-		if err != nil {
-			return nil, errors.Wrapf(err, "getting connector status %s", connectorName)
-		}
-
-		withState := &ConnectorWithState{
-			Name:           connector.Name,
-			ConnectorState: connectorStatus.Connector,
-			Config:         connector.Config,
-			Tasks:          connectorStatus.Tasks,
-		}
-
-		connectors[index] = withState
+	names := make([]string, len(connectors))
+	for i := range connectors {
+		names[i] = connectors[i]
 	}
-
-	return connectors, nil
+	return names, nil
 }
 
 // Add will add connectors to a cluster

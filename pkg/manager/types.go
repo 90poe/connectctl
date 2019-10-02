@@ -9,5 +9,5 @@ type ConnectorWithState struct {
 	Name           string                  `json:"name"`
 	Config         connect.ConnectorConfig `json:"config,omitempty"`
 	ConnectorState connect.ConnectorState  `json:"connectorState,omitempty"`
-	Tasks          []connect.TaskState     `json:"tasks,omitempty"`
+	Tasks          Tasks                   `json:"tasks,omitempty"`
 }
