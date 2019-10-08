@@ -33,6 +33,7 @@ func ByID(taskIDs ...int) TaskPredicate {
 func (t Tasks) Filter(predicate TaskPredicate) Tasks {
 	var found Tasks
 	for _, task := range t {
+		task := task
 		if predicate(&task) {
 			found = append(found, task)
 		}

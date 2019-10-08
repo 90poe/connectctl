@@ -59,11 +59,7 @@ func (c *ConnectorManager) ListConnectors() ([]string, error) {
 		return nil, errors.Wrap(err, "getting existing connectors")
 	}
 
-	names := make([]string, len(connectors))
-	for i := range connectors {
-		names[i] = connectors[i]
-	}
-	return names, nil
+	return connectors, nil
 }
 
 // Add will add connectors to a cluster
