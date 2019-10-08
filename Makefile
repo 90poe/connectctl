@@ -8,7 +8,7 @@ build:
 .PHONY: install-deps
 install-deps:
 	go mod download
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.19.1
 
 .PHONY: local-release
 local-release:

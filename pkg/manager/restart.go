@@ -22,7 +22,6 @@ func (c *ConnectorManager) restartConnectors(connectorNames []string, restartTas
 	c.logger.Info("restarting specified connectors")
 
 	for _, connectorName := range connectorNames {
-
 		err := c.restartConnector(connectorName)
 		if err != nil {
 			return errors.Wrapf(err, "restarting connector %s", connectorName)

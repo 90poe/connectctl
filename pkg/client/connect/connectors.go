@@ -79,8 +79,6 @@ type TaskState struct {
 	Trace    string `json:"trace,omitempty"`
 }
 
-// TODO: Probably need to URL-encode connector names
-
 // CreateConnector creates a new connector instance. If successful, conn is
 // updated with the connector's state returned by the API, including Tasks.
 //
