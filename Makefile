@@ -3,7 +3,7 @@ git_commit := $(shell git describe --dirty --always)
 
 .PHONY: build
 build:
-	CGO_ENABLED=0 go build -ldflags "-X github.com/90poe/connectctl/pkg/version.GitHash=$(git_commit) -X github.com/90poe/connectctl/pkg/version.BuildDate=$(built_at)" ./cmd/connectctl
+	CGO_ENABLED=0 go build -ldflags "-X github.com/90poe/connectctl/internal/version.GitHash=$(git_commit) -X github.com/90poe/connectctl/internal/version.BuildDate=$(built_at)" ./cmd/connectctl
 
 .PHONY: install-deps
 install-deps:
