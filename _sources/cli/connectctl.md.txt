@@ -1,4 +1,4 @@
-## connecctl
+## connectctl
 
 connectctl: work with Kafka Connect easily
 
