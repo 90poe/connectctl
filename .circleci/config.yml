@@ -2,15 +2,22 @@ version: 2
 jobs:
   buildtest:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13.1
     steps:
       - checkout
       - run: make ci
+      - save_cache:
+          key: go-mod-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
   release:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13.1
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
       - run: make release
   docs-build:
     docker:
@@ -42,7 +49,7 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "b2:1b:aa:03:24:de:cd:aa:aa:0d:f6:ad:be:c9:85:19"
-      - run: 
+      - run:
           name: Deploy docs to gh-pages branch
           command: gh-pages --dotfiles --message "chore - docs published to GitHub Pages" --dist docs/_build/html
 workflows:
@@ -56,7 +63,7 @@ workflows:
       - docs-build:
           filters:
             tags:
-              ignore: /.*/        
+              ignore: /.*/
   release:
     jobs:
       - release:
