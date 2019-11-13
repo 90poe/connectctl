@@ -13,7 +13,7 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w -X github.com/90poe/connectctl/pkg/version.BuildDate={{.Date}} -X github.com/90poe/connectctl/pkg/version.GitHash={{.Commit}} -X github.com/90poe/connectctl/pkg/version.Version={{.Version}}
+      - -s -w -X github.com/90poe/connectctl/internal/version.BuildDate={{.Date}} -X github.com/90poe/connectctl/internal/version.GitHash={{.Commit}} -X github.com/90poe/connectctl/internal/version.Version={{.Version}}
     goos:
       - windows
       - darwin
