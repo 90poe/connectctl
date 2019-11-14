@@ -34,3 +34,11 @@ func NewConnectorsManager(config *Config) (*ConnectorManager, error) {
 		logger: log.WithField("cluster", config.ClusterURL),
 	}, nil
 }
+
+func (c *ConnectorManager) ReadinessCheck() (string, func() error) {
+	return "connectctl-readiness-check", func() error { return nil }
+}
+
+func (c *ConnectorManager) LivenessCheck() (string, func() error) {
+	return "connectctl-liveness-check", func() error { return nil }
+}
