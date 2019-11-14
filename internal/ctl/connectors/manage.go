@@ -2,7 +2,6 @@ package connectors
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/90poe/connectctl/internal/ctl"
@@ -53,7 +52,7 @@ if you specify --once then it will sync once and then exit.`,
 	ctl.AddCommonConnectorsFlags(manageCmd, &params.ClusterURL)
 	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory, &params.EnvVar)
 
-	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", params.SyncPeriod, fmt.Sprintf("How often to sync with the connect cluster. Defaults to %s", params.SyncPeriod))
+	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", params.SyncPeriod, "How often to sync with the connect cluster")
 	_ = viper.BindPFlag("sync-period", manageCmd.PersistentFlags().Lookup("sync-period"))
 
 	manageCmd.Flags().BoolVarP(&params.AllowPurge, "allow-purge", "", false, "If true it will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
@@ -65,10 +64,10 @@ if you specify --once then it will sync once and then exit.`,
 	manageCmd.Flags().BoolVar(&params.RunOnce, "once", false, "if supplied sync will run once and command will exit")
 	_ = viper.BindPFlag("once", manageCmd.PersistentFlags().Lookup("once"))
 
-	manageCmd.Flags().BoolVar(&params.EnableHealthCheck, "enable-healthcheck", false, "if supplied a healthcheck via http will be enabled")
-	_ = viper.BindPFlag("enable-healthcheck", manageCmd.PersistentFlags().Lookup("enable-healthcheck"))
+	manageCmd.Flags().BoolVar(&params.EnableHealthCheck, "healthcheck-enable", false, "if supplied a healthcheck via http will be enabled")
+	_ = viper.BindPFlag("healthcheck-enable", manageCmd.PersistentFlags().Lookup("healthcheck-enable"))
 
-	manageCmd.Flags().StringVar(&params.HealthCheckAddress, "healthcheck-address", params.HealthCheckAddress, fmt.Sprintf("if enabled the healthchecks ('/live' and '/ready') will be available from this address. Defaults to %s", params.HealthCheckAddress))
+	manageCmd.Flags().StringVar(&params.HealthCheckAddress, "healthcheck-address", params.HealthCheckAddress, "if enabled the healthchecks ('/live' and '/ready') will be available from this address")
 	_ = viper.BindPFlag("healthcheck-address", manageCmd.PersistentFlags().Lookup("healthcheck-address"))
 
 	return manageCmd
