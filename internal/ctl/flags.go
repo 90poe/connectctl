@@ -16,12 +16,16 @@ func AddOutputFlags(cmd *cobra.Command, output *string) {
 	_ = viper.BindPFlag("output", cmd.PersistentFlags().Lookup("output"))
 }
 
-func AddDefinitionFilesFlags(cmd *cobra.Command, files *[]string, directory *string) {
-	cmd.Flags().StringArrayVarP(files, "files", "f", []string{}, "The connector definitions files (Required if --directory not specified)")
+func AddDefinitionFilesFlags(cmd *cobra.Command, files *[]string, directory *string, env *string) {
+	cmd.Flags().StringArrayVarP(files, "files", "f", []string{}, "The connector definitions files (Required if --directory or --env-var not specified)")
 	_ = viper.BindPFlag("files", cmd.PersistentFlags().Lookup("files"))
 
-	cmd.Flags().StringVarP(directory, "directory", "d", "", "The directory containing the connector definitions files (Required if --files not specified)")
+	cmd.Flags().StringVarP(directory, "directory", "d", "", "The directory containing the connector definitions files (Required if --file or --env-vars not specified)")
 	_ = viper.BindPFlag("directory", cmd.PersistentFlags().Lookup("directory"))
+
+	cmd.Flags().StringVarP(env, "env-var", "e", "", "An environmental variable whose value is a singular or array of connectors serialised as JSON (Required if --files or --directory not specified)")
+	_ = viper.BindPFlag("env-var", cmd.PersistentFlags().Lookup("env-var"))
+
 }
 
 func AddConnectorNamesFlags(cmd *cobra.Command, names *[]string) {

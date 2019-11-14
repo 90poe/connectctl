@@ -43,7 +43,7 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	return nil
 }
 
-func (c *ConnectorManager) reconcileConnectors(connectors []*connect.Connector) error {
+func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector) error {
 	c.logger.Debug("reconciling connectors")
 
 	for _, connector := range connectors {
@@ -71,7 +71,7 @@ func (c *ConnectorManager) reconcileConnectors(connectors []*connect.Connector) 
 	return nil
 }
 
-func (c *ConnectorManager) autoRestart(connectors []*connect.Connector) error {
+func (c *ConnectorManager) autoRestart(connectors []connect.Connector) error {
 	c.logger.Debug("auto restarting connectors")
 
 	for _, connector := range connectors {
@@ -120,7 +120,7 @@ func (c *ConnectorManager) autoRestart(connectors []*connect.Connector) error {
 	return nil
 }
 
-func (c *ConnectorManager) checkAndDeleteUnmanaged(connectors []*connect.Connector) error {
+func (c *ConnectorManager) checkAndDeleteUnmanaged(connectors []connect.Connector) error {
 	c.logger.Debug("purging any unmanaged connectors from cluster")
 
 	existing, resp, err := c.client.ListConnectors()
@@ -157,7 +157,7 @@ func (c *ConnectorManager) deleteUnmanaged(unmanagedConnectors []string) error {
 	return nil
 }
 
-func (c *ConnectorManager) reconcileConnector(connector *connect.Connector) error {
+func (c *ConnectorManager) reconcileConnector(connector connect.Connector) error {
 	connectLogger := c.logger.WithField("connector", connector.Name)
 	connectLogger.Debug("reconciling connector")
 	defer connectLogger.Debug("reconciled connector")
@@ -181,7 +181,7 @@ func (c *ConnectorManager) reconcileConnector(connector *connect.Connector) erro
 	return nil
 }
 
-func (c *ConnectorManager) handleExistingConnector(connector *connect.Connector, existingConnector *connect.Connector, logger *log.Entry) error {
+func (c *ConnectorManager) handleExistingConnector(connector connect.Connector, existingConnector *connect.Connector, logger *log.Entry) error {
 	logger.Debug("connector already exists")
 
 	if existingConnector.ConfigEqual(connector) {
@@ -202,10 +202,10 @@ func (c *ConnectorManager) handleExistingConnector(connector *connect.Connector,
 	return nil
 }
 
-func (c *ConnectorManager) handleNewConnector(connector *connect.Connector, logger *log.Entry) error {
+func (c *ConnectorManager) handleNewConnector(connector connect.Connector, logger *log.Entry) error {
 	logger.Info("connector doesn't exist, creating")
 
-	err := c.Add([]*connect.Connector{connector})
+	err := c.Add([]connect.Connector{connector})
 
 	if err != nil {
 		logger.WithError(err).Debug("error creating connector")
@@ -216,7 +216,7 @@ func (c *ConnectorManager) handleNewConnector(connector *connect.Connector, logg
 	return nil
 }
 
-func containsConnector(connectorName string, connectors []*connect.Connector) bool {
+func containsConnector(connectorName string, connectors []connect.Connector) bool {
 	for _, c := range connectors {
 		if c.Name == connectorName {
 			return true

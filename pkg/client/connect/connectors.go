@@ -22,7 +22,7 @@ type Connector struct {
 // and return true or false if they are equal.
 //
 // Note: tasks are ignored in the comparison
-func (c *Connector) ConfigEqual(other *Connector) bool {
+func (c *Connector) ConfigEqual(other Connector) bool {
 	if c.Name != other.Name {
 		return false
 	}
@@ -85,7 +85,7 @@ type TaskState struct {
 // Passing an object that already contains Tasks produces an error.
 //
 // See: http://docs.confluent.io/current/connect/userguide.html#post--connectors
-func (c *Client) CreateConnector(conn *Connector) (*http.Response, error) {
+func (c *Client) CreateConnector(conn Connector) (*http.Response, error) {
 	if len(conn.Tasks) != 0 {
 		return nil, errors.New("cannot create Connector with existing Tasks")
 	}

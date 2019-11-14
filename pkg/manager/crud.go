@@ -63,7 +63,7 @@ func (c *ConnectorManager) ListConnectors() ([]string, error) {
 }
 
 // Add will add connectors to a cluster
-func (c *ConnectorManager) Add(connectors []*connect.Connector) error {
+func (c *ConnectorManager) Add(connectors []connect.Connector) error {
 	c.logger.Debug("adding connectors")
 
 	for _, connector := range connectors {

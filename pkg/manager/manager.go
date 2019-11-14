@@ -10,7 +10,7 @@ import (
 )
 
 // ConnectorSource will return a slice of the desired connector configuration
-type ConnectorSource func() ([]*connect.Connector, error)
+type ConnectorSource func() ([]connect.Connector, error)
 
 // ConnectorManager manages connectors in a Kafka Connect cluster
 type ConnectorManager struct {

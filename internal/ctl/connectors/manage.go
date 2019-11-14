@@ -1,17 +1,13 @@
 package connectors
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
-	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
 	signals "github.com/90poe/connectctl/pkg/signal"
+	"github.com/90poe/connectctl/pkg/sources"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -23,6 +19,7 @@ type manageConnectorsCmdParams struct {
 	ClusterURL  string
 	Files       []string
 	Directory   string
+	EnvVar      string
 	SyncPeriod  time.Duration
 	AllowPurge  bool
 	AutoRestart bool
@@ -35,18 +32,18 @@ func manageConnectorsCmd() *cobra.Command {
 	manageCmd := &cobra.Command{
 		Use:   "manage",
 		Short: "Actively manage connectors in a Kafka Connect cluster",
-		Long: `This command will add/delete/update connectors in a destination 
-		Kafa Connect cluster based on a list of desired connectors which are specified
-		as a list of files or all files in a directory. The command runs continuously and
-		will sync desired state with actual state based on the --sync-period flag. But
-		if you specify --once then it will sync once and then exit.`,
+		Long: `This command will add/delete/update connectors in a destination
+Kafa Connect cluster based on a list of desired connectors which are specified
+as a list of files or all files in a directory. The command runs continuously and
+will sync desired state with actual state based on the --sync-period flag. But
+if you specify --once then it will sync once and then exit.`,
 		Run: func(cmd *cobra.Command, _ []string) {
 			doManageConnectors(cmd, params)
 		},
 	}
 
 	ctl.AddCommonConnectorsFlags(manageCmd, &params.ClusterURL)
-	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory)
+	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory, &params.EnvVar)
 
 	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", 5*time.Minute, "How often to sync with the connect cluster. Defaults to 5 minutes")
 	_ = viper.BindPFlag("sync-period", manageCmd.PersistentFlags().Lookup("sync-period"))
@@ -74,10 +71,13 @@ func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
 
 	var source manager.ConnectorSource
 	if params.Files != nil {
-		source = filesSource(&params.Files)
+		source = sources.Files(params.Files)
 	}
 	if params.Directory != "" {
-		source = directorySource(&params.Directory)
+		source = sources.Directory(params.Directory)
+	}
+	if params.EnvVar != "" {
+		source = sources.EnvVarValue(params.EnvVar)
 	}
 
 	config := &manager.Config{
@@ -109,55 +109,23 @@ func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
 	clusterLogger.Info("finished executing manage connectors command")
 }
 
-func filesSource(files *[]string) manager.ConnectorSource {
-	return func() ([]*connect.Connector, error) {
-		connectors := make([]*connect.Connector, len(*files))
-
-		for index, file := range *files {
-			bytes, err := ioutil.ReadFile(file)
-			if err != nil {
-				return nil, errors.Wrapf(err, "reading connector json %s", file)
-			}
-
-			connector := &connect.Connector{}
-			err = json.Unmarshal(bytes, connector)
-			if err != nil {
-				return nil, errors.Wrap(err, "unmarshalling connector from bytes")
-			}
-
-			connectors[index] = connector
-		}
-
-		return connectors, nil
-	}
-}
-
-func directorySource(dir *string) manager.ConnectorSource {
-	return func() ([]*connect.Connector, error) {
-		var files []string
-
-		err := filepath.Walk(*dir, func(path string, info os.FileInfo, err error) error {
-			if filepath.Ext(path) == ".json" {
-				files = append(files, path)
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, errors.Wrapf(err, "list connector files in directory %s", *dir)
-		}
-
-		return filesSource(&files)()
-	}
-}
-
 func checkConfig(params *manageConnectorsCmdParams) error {
-	if len(params.Files) == 0 && params.Directory == "" {
-		return errors.New("you must supply a list of files using --files or a directory that contains files using --directory")
+
+	paramsSet := 0
+
+	if len(params.Files) != 0 {
+		paramsSet++
+	}
+	if params.Directory != "" {
+		paramsSet++
+	}
+	if params.EnvVar != "" {
+		paramsSet++
 	}
 
-	if len(params.Files) != 0 && params.Directory != "" {
-		return errors.New("you can't supply a list of files and a directory that contains files. Use --files OR --directory")
+	if paramsSet == 1 {
+		return nil
 	}
 
-	return nil
+	return errors.New("you must supply a list of files using --files or a directory that contains files using --directory or an environmental whose value is a JSON serialised connector or array of connectors")
 }
