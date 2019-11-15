@@ -57,7 +57,6 @@ func Directory(dir string) func() ([]connect.Connector, error) {
 }
 
 func EnvVarValue(env string) func() ([]connect.Connector, error) {
-
 	return func() ([]connect.Connector, error) {
 		value, ok := os.LookupEnv(env)
 
@@ -71,9 +70,7 @@ func EnvVarValue(env string) func() ([]connect.Connector, error) {
 }
 
 func StdIn(in io.Reader) func() ([]connect.Connector, error) {
-
 	return func() ([]connect.Connector, error) {
-
 		data, err := ioutil.ReadAll(in)
 
 		if err != nil {
@@ -84,7 +81,6 @@ func StdIn(in io.Reader) func() ([]connect.Connector, error) {
 }
 
 func processBytes(data []byte) ([]connect.Connector, error) {
-
 	if bytes.HasPrefix(data, []byte("[")) { // REVIEW : is there a better test for a JSON array?
 		c, err := newConnectorsFromBytes(data)
 		if err != nil {

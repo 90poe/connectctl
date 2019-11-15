@@ -25,7 +25,6 @@ func AddDefinitionFilesFlags(cmd *cobra.Command, files *[]string, directory *str
 
 	cmd.Flags().StringVarP(env, "env-var", "e", "", "An environmental variable whose value is a singular or array of connectors serialised as JSON (Required if --files or --directory not specified)")
 	_ = viper.BindPFlag("env-var", cmd.PersistentFlags().Lookup("env-var"))
-
 }
 
 func AddConnectorNamesFlags(cmd *cobra.Command, names *[]string) {
