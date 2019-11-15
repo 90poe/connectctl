@@ -2,9 +2,10 @@ package manager
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/90poe/connectctl/pkg/client/connect"
-
+	"github.com/heptiolabs/healthcheck"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,6 +18,8 @@ type ConnectorManager struct {
 	config *Config
 	client *connect.Client
 	logger *log.Entry
+
+	readinessState readinessState
 }
 
 // NewConnectorsManager creates a new ConnectorManager
@@ -29,16 +32,39 @@ func NewConnectorsManager(config *Config) (*ConnectorManager, error) {
 	}
 
 	return &ConnectorManager{
-		config: config,
-		client: client,
-		logger: log.WithField("cluster", config.ClusterURL),
+		config:         config,
+		client:         client,
+		logger:         log.WithField("cluster", config.ClusterURL),
+		readinessState: unknownState,
 	}, nil
 }
 
+type readinessState int
+
+const (
+	unknownState readinessState = iota
+	okState
+	errorState
+)
+
+// ReadinessCheck checks if we have been able to start syncing with kafka-connect
 func (c *ConnectorManager) ReadinessCheck() (string, func() error) {
-	return "connectctl-readiness-check", func() error { return nil }
+	return "connectctl-readiness-check", func() error {
+
+		switch c.readinessState {
+		case okState:
+			return nil
+		case unknownState, errorState:
+			return errors.New("connectctl is not ready")
+		}
+
+		return nil
+	}
 }
 
+// LivenessCheck checks if the the kafka-connect instance is running.
+// The timeout of 2 seconds is arbitary.
 func (c *ConnectorManager) LivenessCheck() (string, func() error) {
-	return "connectctl-liveness-check", func() error { return nil }
+	return "connectctl-liveness-check-kafka-connect-instance",
+		healthcheck.HTTPGetCheck(c.config.ClusterURL, time.Second*2)
 }
