@@ -44,8 +44,8 @@ Kafa Connect cluster based on a list of desired connectors which are specified
 as a list of files or all files in a directory. The command runs continuously and
 will sync desired state with actual state based on the --sync-period flag. But
 if you specify --once then it will sync once and then exit.`,
-		Run: func(cmd *cobra.Command, _ []string) {
-			doManageConnectors(cmd, params)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return doManageConnectors(cmd, params)
 		},
 	}
 
@@ -73,7 +73,7 @@ if you specify --once then it will sync once and then exit.`,
 	return manageCmd
 }
 
-func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
+func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) error {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Debug("executing manage connectors command")
 
@@ -82,21 +82,10 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
 		clusterLogger.WithError(err).Fatalln("Error with configuration")
 	}
 
-	var source manager.ConnectorSource
+	source, err := findSource(params, cmd)
 
-	switch {
-	case params.Files != nil:
-		if len(params.Files) == 1 && params.Files[0] == "-" {
-			source = sources.StdIn(cmd.InOrStdin())
-		} else {
-			source = sources.Files(params.Files)
-		}
-	case params.Directory != "":
-		source = sources.Directory(params.Directory)
-	case params.EnvVar != "":
-		source = sources.EnvVarValue(params.EnvVar)
-	default:
-		clusterLogger.Fatalln("error finding connector definitions from parameters")
+	if err != nil {
+		return err
 	}
 
 	config := &manager.Config{
@@ -110,7 +99,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
 
 	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("Error creating connectors manager")
+		return errors.Wrap(err, "Error creating connectors manager")
 	}
 
 	ctx := context.Background()
@@ -131,17 +120,34 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
 
 	if params.RunOnce {
 		if err := mngr.Sync(source); err != nil {
-			clusterLogger.WithError(err).Fatalln("Error running connector sync")
+			return errors.Wrap(err, "Error running connector sync")
 		}
 	} else {
 		stopCh := signals.SetupSignalHandler()
 
 		if err := mngr.Manage(source, stopCh); err != nil {
-			clusterLogger.WithError(err).Fatalln("Error running connector manager")
+			return errors.Wrap(err, "Error running connector manager")
 		}
 	}
 
 	clusterLogger.Info("finished executing manage connectors command")
+	return nil
+}
+
+func findSource(params *manageConnectorsCmdParams, cmd *cobra.Command) (manager.ConnectorSource, error) {
+	switch {
+	case params.Files != nil:
+		if len(params.Files) == 1 && params.Files[0] == "-" {
+			return sources.StdIn(cmd.InOrStdin()), nil
+		}
+		return sources.Files(params.Files), nil
+
+	case params.Directory != "":
+		return sources.Directory(params.Directory), nil
+	case params.EnvVar != "":
+		return sources.EnvVarValue(params.EnvVar), nil
+	}
+	return nil, errors.New("error finding connector definitions from parameters")
 }
 
 func checkConfig(params *manageConnectorsCmdParams) error {
