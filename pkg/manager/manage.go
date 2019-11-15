@@ -20,7 +20,6 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 	syncChannel := time.NewTicker(c.config.SyncPeriod).C
 	for {
 		select {
-
 		case <-syncChannel:
 			err := c.Sync(source)
 			if err != nil {
@@ -47,7 +46,6 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	if err = c.reconcileConnectors(connectors); err != nil {
 		return errors.Wrap(err, "synchronising connectors")
 	}
-
 	return nil
 }
 

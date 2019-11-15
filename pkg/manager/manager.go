@@ -50,7 +50,6 @@ const (
 // ReadinessCheck checks if we have been able to start syncing with kafka-connect
 func (c *ConnectorManager) ReadinessCheck() (string, func() error) {
 	return "connectctl-readiness-check", func() error {
-
 		switch c.readinessState {
 		case okState:
 			return nil
@@ -63,7 +62,7 @@ func (c *ConnectorManager) ReadinessCheck() (string, func() error) {
 }
 
 // LivenessCheck checks if the the kafka-connect instance is running.
-// The timeout of 2 seconds is arbitary.
+// The timeout of 2 seconds is arbitrary.
 func (c *ConnectorManager) LivenessCheck() (string, func() error) {
 	return "connectctl-liveness-check-kafka-connect-instance",
 		healthcheck.HTTPGetCheck(c.config.ClusterURL, time.Second*2)
