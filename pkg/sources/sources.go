@@ -15,6 +15,7 @@ import (
 	"github.com/90poe/connectctl/pkg/client/connect"
 )
 
+// Files returns the aggregrated connectors loaded from a set of filepaths or an error
 func Files(files []string) func() ([]connect.Connector, error) {
 	return func() ([]connect.Connector, error) {
 		connectors := make([]connect.Connector, len(files))
@@ -38,6 +39,8 @@ func Files(files []string) func() ([]connect.Connector, error) {
 	}
 }
 
+// Directory returns the aggregrated connectors loaded from a directory and its children or an error
+// Note - Files need to end with .json.
 func Directory(dir string) func() ([]connect.Connector, error) {
 	return func() ([]connect.Connector, error) {
 		var files []string
@@ -56,6 +59,7 @@ func Directory(dir string) func() ([]connect.Connector, error) {
 	}
 }
 
+// EnvVarValue returns the connectors loaded from an environmental variable or an error
 func EnvVarValue(env string) func() ([]connect.Connector, error) {
 	return func() ([]connect.Connector, error) {
 		value, ok := os.LookupEnv(env)
@@ -69,6 +73,7 @@ func EnvVarValue(env string) func() ([]connect.Connector, error) {
 	}
 }
 
+// StdIn returns the connectors piped via stdin or an error
 func StdIn(in io.Reader) func() ([]connect.Connector, error) {
 	return func() ([]connect.Connector, error) {
 		data, err := ioutil.ReadAll(in)
