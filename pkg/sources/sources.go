@@ -1,8 +1,10 @@
 package sources
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -64,24 +66,39 @@ func EnvVarValue(env string) func() ([]connect.Connector, error) {
 		}
 
 		value = strings.TrimSpace(value)
-
-		if strings.HasPrefix(value, "[") {
-
-			c, err := newConnectorsFromBytes([]byte(value))
-			if err != nil {
-				return nil, errors.Wrap(err, "unmarshalling connector from bytes")
-			}
-
-			return c, nil
-		}
-
-		c, err := newConnectorFromBytes([]byte(value))
-		if err != nil {
-			return nil, errors.Wrap(err, "unmarshalling connector from bytes")
-		}
-
-		return []connect.Connector{c}, nil
+		return processBytes([]byte(value))
 	}
+}
+
+func StdIn(in io.Reader) func() ([]connect.Connector, error) {
+
+	return func() ([]connect.Connector, error) {
+
+		data, err := ioutil.ReadAll(in)
+
+		if err != nil {
+			return nil, errors.Wrap(err, "error reading from StdIn")
+		}
+		return processBytes(data)
+	}
+}
+
+func processBytes(data []byte) ([]connect.Connector, error) {
+
+	if bytes.HasPrefix(data, []byte("[")) { // REVIEW : is there a better test for an array?
+		c, err := newConnectorsFromBytes(data)
+		if err != nil {
+			return nil, errors.Wrap(err, "error unmarshalling connectors from bytes")
+		}
+		return c, nil
+	}
+
+	c, err := newConnectorFromBytes(data)
+	if err != nil {
+		return nil, errors.Wrap(err, "error unmarshalling connector from bytes")
+	}
+
+	return []connect.Connector{c}, nil
 }
 
 func newConnectorFromBytes(bytes []byte) (connect.Connector, error) {

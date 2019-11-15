@@ -60,7 +60,7 @@ if you specify --once then it will sync once and then exit.`,
 	return manageCmd
 }
 
-func doManageConnectors(_ *cobra.Command, params *manageConnectorsCmdParams) {
+func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Debug("executing manage connectors command")
 
