@@ -7,6 +7,7 @@ require (
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 // indirect
 	github.com/go-openapi/errors v0.19.2 // indirect
 	github.com/go-openapi/strfmt v0.19.0 // indirect
+	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect

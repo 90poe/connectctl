@@ -13,6 +13,10 @@ import (
 func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}) error {
 	c.logger.Info("running connector manager")
 
+	// mark ourselves as having an unhealthy state until we have
+	// tried to contact the kafka-connect instance
+	c.readinessState = errorState
+
 	syncChannel := time.NewTicker(c.config.SyncPeriod).C
 	for {
 		select {
@@ -21,6 +25,9 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 			if err != nil {
 				return errors.Wrap(err, "synchronising connectors for source")
 			}
+			// mark ourselves as being in an ok state as we have
+			// started syncing without any error
+			c.readinessState = okState
 		case <-stopCH:
 			c.logger.Info("Shutting down connector manager")
 			return nil
@@ -39,7 +46,6 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	if err = c.reconcileConnectors(connectors); err != nil {
 		return errors.Wrap(err, "synchronising connectors")
 	}
-
 	return nil
 }
 

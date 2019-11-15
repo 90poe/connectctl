@@ -1,9 +1,11 @@
 package connectors
 
 import (
+	"context"
 	"time"
 
 	"github.com/90poe/connectctl/internal/ctl"
+	"github.com/90poe/connectctl/internal/healthcheck"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/manager"
 	signals "github.com/90poe/connectctl/pkg/signal"
@@ -16,18 +18,23 @@ import (
 )
 
 type manageConnectorsCmdParams struct {
-	ClusterURL  string
-	Files       []string
-	Directory   string
-	EnvVar      string
-	SyncPeriod  time.Duration
-	AllowPurge  bool
-	AutoRestart bool
-	RunOnce     bool
+	ClusterURL         string
+	Files              []string
+	Directory          string
+	EnvVar             string
+	SyncPeriod         time.Duration
+	AllowPurge         bool
+	AutoRestart        bool
+	RunOnce            bool
+	EnableHealthCheck  bool
+	HealthCheckAddress string
 }
 
 func manageConnectorsCmd() *cobra.Command {
-	params := &manageConnectorsCmdParams{}
+	params := &manageConnectorsCmdParams{
+		SyncPeriod:         5 * time.Minute,
+		HealthCheckAddress: ":9000",
+	}
 
 	manageCmd := &cobra.Command{
 		Use:   "manage",
@@ -37,15 +44,15 @@ Kafa Connect cluster based on a list of desired connectors which are specified
 as a list of files or all files in a directory. The command runs continuously and
 will sync desired state with actual state based on the --sync-period flag. But
 if you specify --once then it will sync once and then exit.`,
-		Run: func(cmd *cobra.Command, _ []string) {
-			doManageConnectors(cmd, params)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return doManageConnectors(cmd, params)
 		},
 	}
 
 	ctl.AddCommonConnectorsFlags(manageCmd, &params.ClusterURL)
 	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory, &params.EnvVar)
 
-	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", 5*time.Minute, "How often to sync with the connect cluster. Defaults to 5 minutes")
+	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", params.SyncPeriod, "How often to sync with the connect cluster")
 	_ = viper.BindPFlag("sync-period", manageCmd.PersistentFlags().Lookup("sync-period"))
 
 	manageCmd.Flags().BoolVarP(&params.AllowPurge, "allow-purge", "", false, "If true it will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
@@ -57,10 +64,16 @@ if you specify --once then it will sync once and then exit.`,
 	manageCmd.Flags().BoolVar(&params.RunOnce, "once", false, "if supplied sync will run once and command will exit")
 	_ = viper.BindPFlag("once", manageCmd.PersistentFlags().Lookup("once"))
 
+	manageCmd.Flags().BoolVar(&params.EnableHealthCheck, "healthcheck-enable", false, "if supplied a healthcheck via http will be enabled")
+	_ = viper.BindPFlag("healthcheck-enable", manageCmd.PersistentFlags().Lookup("healthcheck-enable"))
+
+	manageCmd.Flags().StringVar(&params.HealthCheckAddress, "healthcheck-address", params.HealthCheckAddress, "if enabled the healthchecks ('/live' and '/ready') will be available from this address")
+	_ = viper.BindPFlag("healthcheck-address", manageCmd.PersistentFlags().Lookup("healthcheck-address"))
+
 	return manageCmd
 }
 
-func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
+func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) error {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Debug("executing manage connectors command")
 
@@ -69,21 +82,10 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
 		clusterLogger.WithError(err).Fatalln("Error with configuration")
 	}
 
-	var source manager.ConnectorSource
+	source, err := findSource(params, cmd)
 
-	switch {
-	case params.Files != nil:
-		if len(params.Files) == 1 && params.Files[0] == "-" {
-			source = sources.StdIn(cmd.InOrStdin())
-		} else {
-			source = sources.Files(params.Files)
-		}
-	case params.Directory != "":
-		source = sources.Directory(params.Directory)
-	case params.EnvVar != "":
-		source = sources.EnvVarValue(params.EnvVar)
-	default:
-		clusterLogger.Fatalln("error finding connector definitions from parameters")
+	if err != nil {
+		return err
 	}
 
 	config := &manager.Config{
@@ -97,22 +99,55 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
 
 	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("Error creating connectors manager")
+		return errors.Wrap(err, "Error creating connectors manager")
+	}
+
+	ctx := context.Background()
+
+	if params.EnableHealthCheck {
+		healthCheckHandler := healthcheck.New(mngr)
+
+		go func() {
+			err := healthCheckHandler.Start(params.HealthCheckAddress)
+			if err != nil {
+				clusterLogger.WithError(err).Fatalln("Error starting healthcheck")
+			}
+		}()
+
+		// nolint
+		defer healthCheckHandler.Shutdown(ctx)
 	}
 
 	if params.RunOnce {
 		if err := mngr.Sync(source); err != nil {
-			clusterLogger.WithError(err).Fatalln("Error running connector sync")
+			return errors.Wrap(err, "Error running connector sync")
 		}
 	} else {
 		stopCh := signals.SetupSignalHandler()
 
 		if err := mngr.Manage(source, stopCh); err != nil {
-			clusterLogger.WithError(err).Fatalln("Error running connector manager")
+			return errors.Wrap(err, "Error running connector manager")
 		}
 	}
 
 	clusterLogger.Info("finished executing manage connectors command")
+	return nil
+}
+
+func findSource(params *manageConnectorsCmdParams, cmd *cobra.Command) (manager.ConnectorSource, error) {
+	switch {
+	case params.Files != nil:
+		if len(params.Files) == 1 && params.Files[0] == "-" {
+			return sources.StdIn(cmd.InOrStdin()), nil
+		}
+		return sources.Files(params.Files), nil
+
+	case params.Directory != "":
+		return sources.Directory(params.Directory), nil
+	case params.EnvVar != "":
+		return sources.EnvVarValue(params.EnvVar), nil
+	}
+	return nil, errors.New("error finding connector definitions from parameters")
 }
 
 func checkConfig(params *manageConnectorsCmdParams) error {
