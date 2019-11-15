@@ -85,7 +85,7 @@ func StdIn(in io.Reader) func() ([]connect.Connector, error) {
 
 func processBytes(data []byte) ([]connect.Connector, error) {
 
-	if bytes.HasPrefix(data, []byte("[")) { // REVIEW : is there a better test for an array?
+	if bytes.HasPrefix(data, []byte("[")) { // REVIEW : is there a better test for a JSON array?
 		c, err := newConnectorsFromBytes(data)
 		if err != nil {
 			return nil, errors.Wrap(err, "error unmarshalling connectors from bytes")

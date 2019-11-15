@@ -35,7 +35,7 @@ func addConnectorCmd() *cobra.Command {
 	return addCmd
 }
 
-func doAddConnectors(_ *cobra.Command, params *addConnectorsCmdParams) {
+func doAddConnectors(cmd *cobra.Command, params *addConnectorsCmdParams) {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Infof("adding connectors")
 
@@ -46,19 +46,24 @@ func doAddConnectors(_ *cobra.Command, params *addConnectorsCmdParams) {
 	clusterLogger.WithField("config", config).Trace("add connectors configuration")
 
 	var source manager.ConnectorSource
+
 	if params.Files != nil {
-		source = sources.Files(params.Files)
-	}
-	if params.Directory != "" {
+		if len(params.Files) == 1 && params.Files[0] == "-" {
+			source = sources.StdIn(cmd.InOrStdin())
+		} else {
+			source = sources.Files(params.Files)
+		}
+	} else if params.Directory != "" {
 		source = sources.Directory(params.Directory)
-	}
-	if params.EnvVar != "" {
+	} else if params.EnvVar != "" {
 		source = sources.EnvVarValue(params.EnvVar)
+	} else {
+		clusterLogger.Fatalln("error finding connector definitions from parameters")
 	}
 
 	connectors, err := source()
 	if err != nil {
-		clusterLogger.WithError(err).Error("error reading connector configuration from files")
+		clusterLogger.WithError(err).Fatalln("error reading connector configuration from files")
 	}
 
 	mngr, err := manager.NewConnectorsManager(config)

@@ -70,14 +70,19 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) {
 	}
 
 	var source manager.ConnectorSource
+
 	if params.Files != nil {
-		source = sources.Files(params.Files)
-	}
-	if params.Directory != "" {
+		if len(params.Files) == 1 && params.Files[0] == "-" {
+			source = sources.StdIn(cmd.InOrStdin())
+		} else {
+			source = sources.Files(params.Files)
+		}
+	} else if params.Directory != "" {
 		source = sources.Directory(params.Directory)
-	}
-	if params.EnvVar != "" {
+	} else if params.EnvVar != "" {
 		source = sources.EnvVarValue(params.EnvVar)
+	} else {
+		clusterLogger.Fatalln("error finding connector definitions from parameters")
 	}
 
 	config := &manager.Config{
