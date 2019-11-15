@@ -75,12 +75,14 @@ func EnvVarValue(env string) func() ([]connect.Connector, error) {
 
 // StdIn returns the connectors piped via stdin or an error
 func StdIn(in io.Reader) func() ([]connect.Connector, error) {
-	return func() ([]connect.Connector, error) {
-		data, err := ioutil.ReadAll(in)
+	// read the input as io.Reader isn't re-readable
+	data, err := ioutil.ReadAll(in)
 
+	return func() ([]connect.Connector, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "error reading from StdIn")
 		}
+
 		return processBytes(data)
 	}
 }
