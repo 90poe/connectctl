@@ -79,7 +79,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 
 	err := checkConfig(params)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("Error with configuration")
+		return errors.Wrap(err, "Error with configuration")
 	}
 
 	source, err := findSource(params.Files, params.Directory, params.EnvVar, cmd)
@@ -110,7 +110,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 		go func() {
 			err := healthCheckHandler.Start(params.HealthCheckAddress)
 			if err != nil {
-				clusterLogger.WithError(err).Fatalln("Error starting healthcheck")
+				clusterLogger.WithError(err, "Error starting healthcheck")
 			}
 		}()
 

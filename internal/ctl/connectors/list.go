@@ -73,7 +73,7 @@ func printConnectorsAsJSON(connectors []*manager.ConnectorWithState, logger *log
 	logger.Debug("printing connectors as JSON")
 	b, err := json.MarshalIndent(connectors, "", "  ")
 	if err != nil {
-		logger.WithError(err).Fatalf("error printing connectors as JSON")
+		return errors.Wrap(err, "error printing connectors as JSON")
 	}
 
 	os.Stdout.Write(b)

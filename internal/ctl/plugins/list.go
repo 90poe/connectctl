@@ -60,7 +60,10 @@ func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) error {
 
 	switch params.Output {
 	case "json":
-		printPluginsAsJSON(plugins, clusterLogger)
+		err = printPluginsAsJSON(plugins, clusterLogger)
+		if err != nil {
+			return errors.Wrap(err, "error printing plugins as JSON")
+		}
 	case "table":
 		printPluginsAsTable(plugins, clusterLogger)
 	default:
@@ -69,14 +72,15 @@ func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) error {
 	return nil
 }
 
-func printPluginsAsJSON(plugins []*connect.Plugin, logger *log.Entry) {
+func printPluginsAsJSON(plugins []*connect.Plugin, logger *log.Entry) error {
 	logger.Debug("printing plugins as JSON")
 	b, err := json.MarshalIndent(plugins, "", "  ")
 	if err != nil {
-		logger.WithError(err).Fatalf("error printing plugins as JSON")
+		return err
 	}
 
 	os.Stdout.Write(b)
+	return nil
 }
 
 func printPluginsAsTable(plugins []*connect.Plugin, logger *log.Entry) {
