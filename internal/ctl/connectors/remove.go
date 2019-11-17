@@ -4,6 +4,7 @@ import (
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/manager"
+	"github.com/pkg/errors"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -21,8 +22,8 @@ func removeConnectorCmd() *cobra.Command {
 		Use:   "remove",
 		Short: "Remove connectors from a connect cluster",
 		Long:  "",
-		Run: func(cmd *cobra.Command, _ []string) {
-			doRemoveConnectors(cmd, params)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return doRemoveConnectors(cmd, params)
 		},
 	}
 
@@ -32,7 +33,7 @@ func removeConnectorCmd() *cobra.Command {
 	return removeCmd
 }
 
-func doRemoveConnectors(_ *cobra.Command, params *removeConnectorsCmdParams) {
+func doRemoveConnectors(_ *cobra.Command, params *removeConnectorsCmdParams) error {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Infof("removing connectors: %s", params.Connectors)
 
@@ -44,12 +45,13 @@ func doRemoveConnectors(_ *cobra.Command, params *removeConnectorsCmdParams) {
 
 	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("error creating connectors manager")
+		return errors.Wrap(err, "error creating connectors manager")
 	}
 	err = mngr.Remove(params.Connectors)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("error removing connectors")
+		return errors.Wrap(err, "error removing connectors")
 	}
 
 	clusterLogger.Info("removed connectors")
+	return nil
 }

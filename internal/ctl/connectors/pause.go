@@ -4,6 +4,7 @@ import (
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/manager"
+	"github.com/pkg/errors"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -21,8 +22,8 @@ func pauseConnectorsCmd() *cobra.Command {
 		Use:   "pause",
 		Short: "Pause connectors in a cluster",
 		Long:  "",
-		Run: func(cmd *cobra.Command, _ []string) {
-			doPauseConnectors(cmd, params)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return doPauseConnectors(cmd, params)
 		},
 	}
 
@@ -32,7 +33,7 @@ func pauseConnectorsCmd() *cobra.Command {
 	return pauseCmd
 }
 
-func doPauseConnectors(_ *cobra.Command, params *pauseConnectorsCmdParams) {
+func doPauseConnectors(_ *cobra.Command, params *pauseConnectorsCmdParams) error {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Infof("pausing connectors: %s", params.Connectors)
 
@@ -44,13 +45,14 @@ func doPauseConnectors(_ *cobra.Command, params *pauseConnectorsCmdParams) {
 
 	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("error creating connectors manager")
+		return errors.Wrap(err, "error creating connectors manager")
 	}
 
 	err = mngr.Pause(params.Connectors)
 	if err != nil {
-		clusterLogger.WithError(err).Fatal("error pausing connectors")
+		return errors.Wrap(err, "error pausing connectors")
 	}
 
 	clusterLogger.Info("connectors paused successfully")
+	return nil
 }
