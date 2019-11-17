@@ -60,7 +60,10 @@ func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) error {
 
 	switch params.Output {
 	case "json":
-		printConnectorsAsJSON(connectors, clusterLogger)
+		err := printConnectorsAsJSON(connectors, clusterLogger)
+		if err != nil {
+			return errors.Wrap(err, "error printing connectors as JSON")
+		}
 	case "table":
 		printConnectorsAsTable(connectors, clusterLogger)
 	default:
@@ -69,14 +72,15 @@ func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) error {
 	return nil
 }
 
-func printConnectorsAsJSON(connectors []*manager.ConnectorWithState, logger *log.Entry) {
+func printConnectorsAsJSON(connectors []*manager.ConnectorWithState, logger *log.Entry) error {
 	logger.Debug("printing connectors as JSON")
 	b, err := json.MarshalIndent(connectors, "", "  ")
 	if err != nil {
-		return errors.Wrap(err, "error printing connectors as JSON")
+		return err
 	}
 
 	os.Stdout.Write(b)
+	return nil
 }
 
 func printConnectorsAsTable(connectors []*manager.ConnectorWithState, logger *log.Entry) {
