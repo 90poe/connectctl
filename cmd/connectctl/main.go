@@ -11,6 +11,8 @@ import (
 	"github.com/90poe/connectctl/internal/ctl/version"
 	"github.com/90poe/connectctl/internal/logging"
 
+	"github.com/pkg/errors"
+
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -28,13 +30,13 @@ func main() {
 		Use:   "connectctl [command]",
 		Short: "A kafka connect CLI",
 		Long:  "",
-		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			err := logging.Configure(logLevel, logFile)
 			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
+				return errors.Wrap(err, "error configuring logging")
 			}
 			log.Info("connectctl, a Kafka Connect CLI\n")
+			return nil
 		},
 		Run: func(c *cobra.Command, _ []string) {
 			_ = c.Help()
