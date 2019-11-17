@@ -4,7 +4,6 @@ import (
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/manager"
-	"github.com/90poe/connectctl/pkg/sources"
 	"github.com/pkg/errors"
 
 	log "github.com/sirupsen/logrus"
@@ -46,21 +45,10 @@ func doAddConnectors(cmd *cobra.Command, params *addConnectorsCmdParams) error {
 	}
 	clusterLogger.WithField("config", config).Trace("add connectors configuration")
 
-	var source manager.ConnectorSource
+	source, err := findSource(params.Files, params.Directory, params.EnvVar, cmd)
 
-	switch {
-	case params.Files != nil:
-		if len(params.Files) == 1 && params.Files[0] == "-" {
-			source = sources.StdIn(cmd.InOrStdin())
-		} else {
-			source = sources.Files(params.Files)
-		}
-	case params.Directory != "":
-		source = sources.Directory(params.Directory)
-	case params.EnvVar != "":
-		source = sources.EnvVarValue(params.EnvVar)
-	default:
-		return errors.New("error finding connector definitions from parameters")
+	if err != nil {
+		return err
 	}
 
 	connectors, err := source()
