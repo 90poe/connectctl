@@ -38,8 +38,8 @@ func main() {
 			log.Info("connectctl, a Kafka Connect CLI\n")
 			return nil
 		},
-		Run: func(c *cobra.Command, _ []string) {
-			_ = c.Help()
+		RunE: func(c *cobra.Command, _ []string) error {
+			return c.Help()
 		},
 	}
 
@@ -59,7 +59,7 @@ func main() {
 	cobra.OnInitialize(initConfig)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Printf("%+v", err)
 		os.Exit(1)
 	}
 }

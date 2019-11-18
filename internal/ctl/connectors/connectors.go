@@ -1,7 +1,6 @@
 package connectors
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -11,10 +10,8 @@ func Command() *cobra.Command {
 		Use:   "connectors",
 		Short: "Commands related to Kafka Connect Connectors",
 		Long:  "",
-		Run: func(cmd *cobra.Command, _ []string) {
-			if err := cmd.Help(); err != nil {
-				log.WithError(err).Errorln("Error showing help")
-			}
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return cmd.Help()
 		},
 	}
 
