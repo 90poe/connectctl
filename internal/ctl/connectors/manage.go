@@ -79,10 +79,10 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 
 	err := checkConfig(params)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("Error with configuration")
+		return errors.Wrap(err, "Error with configuration")
 	}
 
-	source, err := findSource(params, cmd)
+	source, err := findSource(params.Files, params.Directory, params.EnvVar, cmd)
 
 	if err != nil {
 		return err
@@ -134,18 +134,18 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 	return nil
 }
 
-func findSource(params *manageConnectorsCmdParams, cmd *cobra.Command) (manager.ConnectorSource, error) {
+func findSource(files []string, directory, envar string, cmd *cobra.Command) (manager.ConnectorSource, error) {
 	switch {
-	case params.Files != nil:
-		if len(params.Files) == 1 && params.Files[0] == "-" {
+	case len(files) > 0:
+		if len(files) == 1 && files[0] == "-" {
 			return sources.StdIn(cmd.InOrStdin()), nil
 		}
-		return sources.Files(params.Files), nil
+		return sources.Files(files), nil
 
-	case params.Directory != "":
-		return sources.Directory(params.Directory), nil
-	case params.EnvVar != "":
-		return sources.EnvVarValue(params.EnvVar), nil
+	case directory != "":
+		return sources.Directory(directory), nil
+	case envar != "":
+		return sources.EnvVarValue(envar), nil
 	}
 	return nil, errors.New("error finding connector definitions from parameters")
 }

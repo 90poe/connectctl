@@ -8,6 +8,7 @@ import (
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
+	"github.com/pkg/errors"
 
 	"github.com/jedib0t/go-pretty/table"
 	log "github.com/sirupsen/logrus"
@@ -26,8 +27,8 @@ func listPluginsCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List connector plugins in a cluster",
 		Long:  "",
-		Run: func(cmd *cobra.Command, _ []string) {
-			doListPlugins(cmd, params)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return doListPlugins(cmd, params)
 		},
 	}
 
@@ -37,7 +38,7 @@ func listPluginsCmd() *cobra.Command {
 	return listCmd
 }
 
-func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) {
+func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) error {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Debug("listing connector plugins")
 
@@ -49,32 +50,37 @@ func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) {
 
 	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("error creating connectors manager")
+		return errors.Wrap(err, "error creating connectors manager")
 	}
 
 	plugins, err := mngr.GetAllPlugins()
 	if err != nil {
-		clusterLogger.WithError(err).Fatal("error getting all connector plguns")
+		return errors.Wrap(err, "error getting all connector plguns")
 	}
 
 	switch params.Output {
 	case "json":
-		printPluginsAsJSON(plugins, clusterLogger)
+		err = printPluginsAsJSON(plugins, clusterLogger)
+		if err != nil {
+			return errors.Wrap(err, "error printing plugins as JSON")
+		}
 	case "table":
 		printPluginsAsTable(plugins, clusterLogger)
 	default:
 		clusterLogger.Errorf("invalid output format specified: %s", params.Output)
 	}
+	return nil
 }
 
-func printPluginsAsJSON(plugins []*connect.Plugin, logger *log.Entry) {
+func printPluginsAsJSON(plugins []*connect.Plugin, logger *log.Entry) error {
 	logger.Debug("printing plugins as JSON")
 	b, err := json.MarshalIndent(plugins, "", "  ")
 	if err != nil {
-		logger.WithError(err).Fatalf("error printing plugins as JSON")
+		return err
 	}
 
 	os.Stdout.Write(b)
+	return nil
 }
 
 func printPluginsAsTable(plugins []*connect.Plugin, logger *log.Entry) {

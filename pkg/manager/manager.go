@@ -30,7 +30,6 @@ func NewConnectorsManager(config *Config) (*ConnectorManager, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "creating connect client")
 	}
-
 	return &ConnectorManager{
 		config:         config,
 		client:         client,

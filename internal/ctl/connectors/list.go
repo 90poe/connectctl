@@ -8,6 +8,7 @@ import (
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/manager"
+	"github.com/pkg/errors"
 
 	"github.com/jedib0t/go-pretty/table"
 	log "github.com/sirupsen/logrus"
@@ -26,8 +27,8 @@ func listConnectorsCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List connectors in a cluster",
 		Long:  "",
-		Run: func(cmd *cobra.Command, _ []string) {
-			doListConnectors(cmd, params)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return doListConnectors(cmd, params)
 		},
 	}
 
@@ -37,7 +38,7 @@ func listConnectorsCmd() *cobra.Command {
 	return listCmd
 }
 
-func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) {
+func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) error {
 	clusterLogger := log.WithField("cluster", params.ClusterURL)
 	clusterLogger.Debug("listing connectors")
 
@@ -49,32 +50,37 @@ func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) {
 
 	mngr, err := manager.NewConnectorsManager(config)
 	if err != nil {
-		clusterLogger.WithError(err).Fatalln("error creating connectors manager")
+		return errors.Wrap(err, "error creating connectors manager")
 	}
 
 	connectors, err := mngr.GetAllConnectors()
 	if err != nil {
-		clusterLogger.WithError(err).Fatal("error getting all connectors")
+		return errors.Wrap(err, "error getting all connectors")
 	}
 
 	switch params.Output {
 	case "json":
-		printConnectorsAsJSON(connectors, clusterLogger)
+		err := printConnectorsAsJSON(connectors, clusterLogger)
+		if err != nil {
+			return errors.Wrap(err, "error printing connectors as JSON")
+		}
 	case "table":
 		printConnectorsAsTable(connectors, clusterLogger)
 	default:
 		clusterLogger.Errorf("invalid output format specified: %s", params.Output)
 	}
+	return nil
 }
 
-func printConnectorsAsJSON(connectors []*manager.ConnectorWithState, logger *log.Entry) {
+func printConnectorsAsJSON(connectors []*manager.ConnectorWithState, logger *log.Entry) error {
 	logger.Debug("printing connectors as JSON")
 	b, err := json.MarshalIndent(connectors, "", "  ")
 	if err != nil {
-		logger.WithError(err).Fatalf("error printing connectors as JSON")
+		return err
 	}
 
 	os.Stdout.Write(b)
+	return nil
 }
 
 func printConnectorsAsTable(connectors []*manager.ConnectorWithState, logger *log.Entry) {
