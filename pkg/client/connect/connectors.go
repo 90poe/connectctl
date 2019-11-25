@@ -110,7 +110,7 @@ func (c *Client) ListConnectors() ([]string, *http.Response, error) {
 func (c *Client) GetConnector(name string) (*Connector, *http.Response, error) {
 	path := "connectors/" + name
 	connector := new(Connector)
-	response, err := c.get(path, connector)
+	response, err := c.get(path, &connector)
 	return connector, response, err
 }
 

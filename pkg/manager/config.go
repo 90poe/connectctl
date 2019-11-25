@@ -6,10 +6,10 @@ import (
 
 // Config represents the connect manager configuration
 type Config struct {
-	ClusterURL  string
-	SyncPeriod  time.Duration
-	AllowPurge  bool
-	AutoRestart bool
+	ClusterURL  string        `json:"cluster_url"`
+	SyncPeriod  time.Duration `json:"sync_period"`
+	AllowPurge  bool          `json:"allow_purge"`
+	AutoRestart bool          `json:"auto_restart"`
 
-	Version string
+	Version string `json:"version"`
 }
