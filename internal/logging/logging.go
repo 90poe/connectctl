@@ -36,9 +36,7 @@ func Configure(logLevel, logFile, logFormat string) error {
 
 	if strings.ToUpper(logFormat) == "JSON" {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
-
 	} else {
-
 		// always use the fulltimestamp
 		logrus.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp: true,
