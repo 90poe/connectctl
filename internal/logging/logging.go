@@ -10,7 +10,7 @@ import (
 )
 
 // Configure sets up the logger
-func Configure(logLevel string, logFile string) error {
+func Configure(logLevel, logFile, logFormat string) error {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return errors.Wrap(err, "getting hostname")
@@ -34,11 +34,14 @@ func Configure(logLevel string, logFile string) error {
 		logrus.SetLevel(level)
 	}
 
-	// always use the fulltimestamp
-	logrus.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp: true,
-	})
-
+	if strings.ToUpper(logFormat) == "JSON" {
+		logrus.SetFormatter(&logrus.JSONFormatter{})
+	} else {
+		// always use the fulltimestamp
+		logrus.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp: true,
+		})
+	}
 	// Set log output to stderr
 	logrus.SetOutput(os.Stderr)
 

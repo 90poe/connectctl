@@ -90,7 +90,7 @@ func (c *Client) CreateConnector(conn Connector) (*http.Response, error) {
 		return nil, errors.New("cannot create Connector with existing Tasks")
 	}
 	path := "connectors"
-	response, err := c.doRequest("POST", path, conn, conn)
+	response, err := c.doRequest("POST", path, conn, &conn)
 	return response, err
 }
 
@@ -110,7 +110,7 @@ func (c *Client) ListConnectors() ([]string, *http.Response, error) {
 func (c *Client) GetConnector(name string) (*Connector, *http.Response, error) {
 	path := "connectors/" + name
 	connector := new(Connector)
-	response, err := c.get(path, connector)
+	response, err := c.get(path, &connector)
 	return connector, response, err
 }
 
@@ -168,7 +168,7 @@ func (c *Client) GetConnectorTaskStatus(name string, taskID int) (*TaskState, *h
 func (c *Client) UpdateConnectorConfig(name string, config ConnectorConfig) (*Connector, *http.Response, error) {
 	path := fmt.Sprintf("connectors/%v/config", name)
 	connector := new(Connector)
-	response, err := c.doRequest("PUT", path, config, connector)
+	response, err := c.doRequest("PUT", path, config, &connector)
 	return connector, response, err
 }
 

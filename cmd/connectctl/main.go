@@ -20,9 +20,10 @@ import (
 )
 
 var (
-	cfgFile  string
-	logLevel string
-	logFile  string
+	cfgFile   string
+	logLevel  string
+	logFile   string
+	logFormat string
 )
 
 func main() {
@@ -31,11 +32,11 @@ func main() {
 		Short: "A kafka connect CLI",
 		Long:  "",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			err := logging.Configure(logLevel, logFile)
+			err := logging.Configure(logLevel, logFile, logFormat)
 			if err != nil {
 				return errors.Wrap(err, "error configuring logging")
 			}
-			log.Info("connectctl, a Kafka Connect CLI\n")
+			log.Info("connectctl, a Kafka Connect CLI")
 			return nil
 		},
 		RunE: func(c *cobra.Command, _ []string) error {
@@ -44,12 +45,15 @@ func main() {
 	}
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "", "", "Config file (default is $HOME/.connectctl.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "l", "", "Log level for the CLI (Optional)")
-	rootCmd.PersistentFlags().StringVarP(&logLevel, "logfile", "", "", "A file to use for log output (Optional)")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "l", "INFO", "Log level for the CLI (Optional)")
+	rootCmd.PersistentFlags().StringVarP(&logFile, "logfile", "", "", "A file to use for log output (Optional)")
+	rootCmd.PersistentFlags().StringVarP(&logFormat, "logformat", "", "TEXT", "Format for log output (Optional)")
 
 	_ = viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 	_ = viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
 	_ = viper.BindPFlag("logfile", rootCmd.PersistentFlags().Lookup("logfile"))
+	_ = viper.BindPFlag("logoutput", rootCmd.PersistentFlags().Lookup("logformat"))
+
 	viper.SetDefault("loglevel", "INFO")
 
 	rootCmd.AddCommand(connectors.Command())
