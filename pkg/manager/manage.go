@@ -112,11 +112,7 @@ func (c *ConnectorManager) checkAndDeleteUnmanaged(connectors []connect.Connecto
 		return nil
 	}
 
-	return c.deleteUnmanaged(unmanaged)
-}
-
-func (c *ConnectorManager) deleteUnmanaged(unmanagedConnectors []string) error {
-	if err := c.Remove(unmanagedConnectors); err != nil {
+	if err := c.Remove(unmanaged); err != nil {
 		return errors.Wrap(err, "error deleting unmanaged connectors")
 	}
 	return nil
