@@ -8,7 +8,6 @@ import (
 
 // GetAllConnectors returns all the connectors in a cluster
 func (c *ConnectorManager) GetAllConnectors() ([]*ConnectorWithState, error) {
-
 	existing, err := c.ListConnectors()
 	if err != nil {
 		return nil, err
@@ -61,11 +60,8 @@ func (c *ConnectorManager) ListConnectors() ([]string, error) {
 
 // Add will add connectors to a cluster
 func (c *ConnectorManager) Add(connectors []connect.Connector) error {
-
 	for _, connector := range connectors {
-
-		_, err := c.client.CreateConnector(connector)
-		if err != nil {
+		if _, err := c.client.CreateConnector(connector); err != nil {
 			return errors.Wrapf(err, "error creating connector %s", connector.Name)
 		}
 	}
@@ -75,11 +71,8 @@ func (c *ConnectorManager) Add(connectors []connect.Connector) error {
 
 // Remove will remove connectors from a cluster
 func (c *ConnectorManager) Remove(connectorNames []string) error {
-
 	for _, connectorName := range connectorNames {
-
-		_, err := c.client.DeleteConnector(connectorName)
-		if err != nil {
+		if _, err := c.client.DeleteConnector(connectorName); err != nil {
 			return errors.Wrapf(err, "error deleting connector %s", connectorName)
 		}
 	}

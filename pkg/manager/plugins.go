@@ -8,7 +8,6 @@ import (
 
 // GetAllPlugins returns all the connector plugins installed
 func (c *ConnectorManager) GetAllPlugins() ([]*connect.Plugin, error) {
-
 	plugins, _, err := c.client.ListPlugins()
 
 	if err != nil {

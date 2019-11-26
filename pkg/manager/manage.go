@@ -10,7 +10,6 @@ import (
 
 // Manage will start the connector manager running and managing connectors
 func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}) error {
-
 	// mark ourselves as having an unhealthy state until we have
 	// tried to contact the kafka-connect instance
 	c.readinessState = errorState
@@ -34,7 +33,6 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 
 // Sync will synchronise the desired and actual state of connectors in a cluster
 func (c *ConnectorManager) Sync(source ConnectorSource) error {
-
 	connectors, err := source()
 	if err != nil {
 		return errors.Wrap(err, "error getting connector configurations")
@@ -46,24 +44,20 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 }
 
 func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector) error {
-
 	for _, connector := range connectors {
-		err := c.reconcileConnector(connector)
-		if err != nil {
+		if err := c.reconcileConnector(connector); err != nil {
 			return errors.Wrapf(err, "error reconciling connector: %s", connector.Name)
 		}
 	}
 
 	if c.config.AllowPurge {
-		err := c.checkAndDeleteUnmanaged(connectors)
-		if err != nil {
+		if err := c.checkAndDeleteUnmanaged(connectors); err != nil {
 			return errors.Wrapf(err, "error checking for unmanaged connectors to purge")
 		}
 	}
 
 	if c.config.AutoRestart {
-		err := c.autoRestart(connectors)
-		if err != nil {
+		if err := c.autoRestart(connectors); err != nil {
 			return errors.Wrap(err, "error checking connector status")
 		}
 	}
@@ -72,9 +66,7 @@ func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector) e
 }
 
 func (c *ConnectorManager) autoRestart(connectors []connect.Connector) error {
-
 	for _, connector := range connectors {
-
 		status, _, err := c.client.GetConnectorStatus(connector.Name)
 
 		if err != nil {
@@ -83,8 +75,7 @@ func (c *ConnectorManager) autoRestart(connectors []connect.Connector) error {
 
 		// Valid statuses are: RUNNING, UNASSIGNED, PAUSED, FAILED
 		if status.Connector.State == "FAILED" {
-
-			// TODO : add feature to track errors restarting connectors
+			// CONSIDER : add feature to track errors restarting connectors
 			// Maybe introduce a policy to tolerate a certain amount of attempts
 			// then error or fail the healthcheck
 			_ = c.restartConnector(connector.Name)
@@ -93,23 +84,18 @@ func (c *ConnectorManager) autoRestart(connectors []connect.Connector) error {
 
 		// If the connector isn't failed it could have some tasks that are failed
 		for _, taskState := range status.Tasks {
-
 			if taskState.State == "FAILED" {
-
-				// TODO : add feature to track errors restarting tasks
+				// CONSIDER : add feature to track errors restarting tasks
 				// Maybe introduce a policy to tolerate a certain amount of attempts
 				// then error or fail the healthcheck
 				_, _ = c.client.RestartConnectorTask(connector.Name, taskState.ID)
-
 			}
 		}
 	}
-
 	return nil
 }
 
 func (c *ConnectorManager) checkAndDeleteUnmanaged(connectors []connect.Connector) error {
-
 	existing, _, err := c.client.ListConnectors()
 	if err != nil {
 		return errors.Wrap(err, "error getting existing connectors")
@@ -130,16 +116,13 @@ func (c *ConnectorManager) checkAndDeleteUnmanaged(connectors []connect.Connecto
 }
 
 func (c *ConnectorManager) deleteUnmanaged(unmanagedConnectors []string) error {
-
-	err := c.Remove(unmanagedConnectors)
-	if err != nil {
+	if err := c.Remove(unmanagedConnectors); err != nil {
 		return errors.Wrap(err, "error deleting unmanaged connectors")
 	}
 	return nil
 }
 
 func (c *ConnectorManager) reconcileConnector(connector connect.Connector) error {
-
 	existingConnectors, _, err := c.client.GetConnector(connector.Name)
 
 	if err != nil {
@@ -157,14 +140,11 @@ func (c *ConnectorManager) reconcileConnector(connector connect.Connector) error
 }
 
 func (c *ConnectorManager) handleExistingConnector(connector connect.Connector, existingConnector *connect.Connector) error {
-
 	if existingConnector.ConfigEqual(connector) {
 		return nil
 	}
 
-	_, _, err := c.client.UpdateConnectorConfig(existingConnector.Name, connector.Config)
-
-	if err != nil {
+	if _, _, err := c.client.UpdateConnectorConfig(existingConnector.Name, connector.Config); err != nil {
 		return errors.Wrap(err, "error updating connector config")
 	}
 
@@ -172,10 +152,7 @@ func (c *ConnectorManager) handleExistingConnector(connector connect.Connector, 
 }
 
 func (c *ConnectorManager) handleNewConnector(connector connect.Connector) error {
-
-	err := c.Add([]connect.Connector{connector})
-
-	if err != nil {
+	if err := c.Add([]connect.Connector{connector}); err != nil {
 		return errors.Wrap(err, "error creating connector")
 	}
 

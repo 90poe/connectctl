@@ -12,15 +12,13 @@ func (c *ConnectorManager) Pause(connectors []string) error {
 }
 
 func (c *ConnectorManager) pauseAllConnectors() error {
-
 	existing, _, err := c.client.ListConnectors()
 	if err != nil {
 		return errors.Wrap(err, "error listing connectors")
 	}
 
 	for _, connectorName := range existing {
-		err := c.pauseConnector(connectorName)
-		if err != nil {
+		if err := c.pauseConnector(connectorName); err != nil {
 			return errors.Wrapf(err, "pausing connector %s", connectorName)
 		}
 	}
@@ -29,10 +27,8 @@ func (c *ConnectorManager) pauseAllConnectors() error {
 }
 
 func (c *ConnectorManager) pauseSpecifiedConnectors(connectors []string) error {
-
 	for _, connectorName := range connectors {
-		err := c.pauseConnector(connectorName)
-		if err != nil {
+		if err := c.pauseConnector(connectorName); err != nil {
 			return errors.Wrapf(err, "error pausing connector %s", connectorName)
 		}
 	}
@@ -41,10 +37,7 @@ func (c *ConnectorManager) pauseSpecifiedConnectors(connectors []string) error {
 }
 
 func (c *ConnectorManager) pauseConnector(connectorName string) error {
-
-	_, err := c.client.PauseConnector(connectorName)
-
-	if err != nil {
+	if _, err := c.client.PauseConnector(connectorName); err != nil {
 		return err
 	}
 

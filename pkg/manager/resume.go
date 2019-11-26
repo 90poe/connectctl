@@ -12,15 +12,13 @@ func (c *ConnectorManager) Resume(connectors []string) error {
 }
 
 func (c *ConnectorManager) resumeAllConnectors() error {
-
 	existing, _, err := c.client.ListConnectors()
 	if err != nil {
 		return errors.Wrap(err, "error listing connectors")
 	}
 
 	for _, connectorName := range existing {
-		err := c.resumeConnector(connectorName)
-		if err != nil {
+		if err := c.resumeConnector(connectorName); err != nil {
 			return errors.Wrapf(err, "error resuming connector %s", connectorName)
 		}
 	}
@@ -30,8 +28,7 @@ func (c *ConnectorManager) resumeAllConnectors() error {
 
 func (c *ConnectorManager) resumeSpecifiedConnectors(connectors []string) error {
 	for _, connectorName := range connectors {
-		err := c.resumeConnector(connectorName)
-		if err != nil {
+		if err := c.resumeConnector(connectorName); err != nil {
 			return errors.Wrapf(err, "error resuming connector %s", connectorName)
 		}
 	}
@@ -40,10 +37,7 @@ func (c *ConnectorManager) resumeSpecifiedConnectors(connectors []string) error 
 }
 
 func (c *ConnectorManager) resumeConnector(connectorName string) error {
-
-	_, err := c.client.ResumeConnector(connectorName)
-
-	if err != nil {
+	if _, err := c.client.ResumeConnector(connectorName); err != nil {
 		return errors.Wrap(err, "error calling resume connector API")
 	}
 
