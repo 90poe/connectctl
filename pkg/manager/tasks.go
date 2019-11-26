@@ -1,8 +1,9 @@
 package manager
 
 import (
-	"github.com/90poe/connectctl/pkg/client/connect"
 	"sort"
+
+	"github.com/90poe/connectctl/pkg/client/connect"
 )
 
 type Tasks []connect.TaskState

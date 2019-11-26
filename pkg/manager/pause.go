@@ -12,12 +12,10 @@ func (c *ConnectorManager) Pause(connectors []string) error {
 }
 
 func (c *ConnectorManager) pauseAllConnectors() error {
-	c.logger.Info("pausing all connectors")
 
-	existing, resp, err := c.client.ListConnectors()
-	c.logger.WithField("response", resp).Trace("list connectors response")
+	existing, _, err := c.client.ListConnectors()
 	if err != nil {
-		return errors.Wrap(err, "getting existing connectors")
+		return errors.Wrap(err, "error listing connectors")
 	}
 
 	for _, connectorName := range existing {
@@ -31,11 +29,11 @@ func (c *ConnectorManager) pauseAllConnectors() error {
 }
 
 func (c *ConnectorManager) pauseSpecifiedConnectors(connectors []string) error {
-	c.logger.Info("pausing specified connectors")
+
 	for _, connectorName := range connectors {
 		err := c.pauseConnector(connectorName)
 		if err != nil {
-			return errors.Wrapf(err, "pausing connector %s", connectorName)
+			return errors.Wrapf(err, "error pausing connector %s", connectorName)
 		}
 	}
 
@@ -43,16 +41,12 @@ func (c *ConnectorManager) pauseSpecifiedConnectors(connectors []string) error {
 }
 
 func (c *ConnectorManager) pauseConnector(connectorName string) error {
-	connectLogger := c.logger.WithField("connector", connectorName)
-	connectLogger.Info("pausing connector")
 
-	resp, err := c.client.PauseConnector(connectorName)
-	connectLogger.WithField("response", resp).Trace("pause connector response")
+	_, err := c.client.PauseConnector(connectorName)
 
 	if err != nil {
-		return errors.Wrap(err, "calling pause connector API")
+		return err
 	}
 
-	connectLogger.Info("paused connector")
 	return nil
 }
