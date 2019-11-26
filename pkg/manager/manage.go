@@ -94,7 +94,7 @@ func (c *ConnectorManager) autoRestart(connectors []connect.Connector) error {
 		// If the connector isn't failed it could have some tasks that are failed
 		for _, taskState := range status.Tasks {
 
-			if taskState.State != "RUNNING" {
+			if taskState.State == "FAILED" {
 
 				// TODO : add feature to track errors restarting tasks
 				// Maybe introduce a policy to tolerate a certain amount of attempts
