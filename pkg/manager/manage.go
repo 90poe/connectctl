@@ -86,7 +86,7 @@ func (c *ConnectorManager) autoRestart(connectors []connect.Connector) error {
 
 			// TODO : add feature to track errors restarting connectors
 			// Maybe introduce a policy to tolerate a certain amount of attempts
-			// then error or fail the healthchck
+			// then error or fail the healthcheck
 			_ = c.restartConnector(connector.Name)
 			continue
 		}
