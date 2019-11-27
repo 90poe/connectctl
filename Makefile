@@ -40,3 +40,11 @@ $(BIN)/golangci-lint/golangci-lint:
 	tar -xf $(GOLANGCI_LINT_ARCHIVE) --strip-components=1 -C $(BIN)/golangci-lint/
 	chmod +x $(BIN)/golangci-lint
 	rm -f $(GOLANGCI_LINT_ARCHIVE)
+
+.PHONY: mocks
+# generate mocks
+mocks:
+ifeq ("$(wildcard $(shell which counterfeiter))","")
+	go get github.com/maxbrunsfeld/counterfeiter/v6
+endif
+	counterfeiter -o=./pkg/manager/mocks/client.go ./pkg/manager/manager.go client

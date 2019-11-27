@@ -1,8 +1,11 @@
 package connectors
 
 import (
+	"fmt"
+
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
+	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
 	"github.com/pkg/errors"
 
@@ -43,7 +46,14 @@ func doResumeConnectors(_ *cobra.Command, params *resumeConnectorsCmdParams) err
 	}
 	clusterLogger.WithField("config", config).Trace("resume connectors configuration")
 
-	mngr, err := manager.NewConnectorsManager(config)
+	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
+
+	client, err := connect.NewClient(params.ClusterURL, userAgent)
+	if err != nil {
+		return errors.Wrap(err, "error creating connect client")
+	}
+
+	mngr, err := manager.NewConnectorsManager(client, config)
 	if err != nil {
 		return errors.Wrap(err, "error creating connectors manager")
 	}
