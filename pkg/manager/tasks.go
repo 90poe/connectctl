@@ -9,22 +9,22 @@ import (
 type Tasks []connect.TaskState
 
 // TaskPredicate is a function that performs some test on a connect.TaskState
-type TaskPredicate func(*connect.TaskState) bool
+type TaskPredicate func(connect.TaskState) bool
 
 // IsRunning returns true if the connector task is in a RUNNING state
-func IsRunning(task *connect.TaskState) bool {
+func IsRunning(task connect.TaskState) bool {
 	return task.State == "RUNNING"
 }
 
 // IsNotRunning returns true if the connector task is not in a RUNNING state
-func IsNotRunning(task *connect.TaskState) bool {
+func IsNotRunning(task connect.TaskState) bool {
 	return task.State != "RUNNING"
 }
 
 // ByID returns a predicate that returns true if the connector task has one of the given task IDs
 func ByID(taskIDs ...int) TaskPredicate {
 	sort.Ints(taskIDs)
-	return func(task *connect.TaskState) bool {
+	return func(task connect.TaskState) bool {
 		found := sort.SearchInts(taskIDs, task.ID)
 		return found < len(taskIDs) && taskIDs[found] == task.ID
 	}
@@ -34,8 +34,7 @@ func ByID(taskIDs ...int) TaskPredicate {
 func (t Tasks) Filter(predicate TaskPredicate) Tasks {
 	var found Tasks
 	for _, task := range t {
-		task := task
-		if predicate(&task) {
+		if predicate(task) {
 			found = append(found, task)
 		}
 	}
