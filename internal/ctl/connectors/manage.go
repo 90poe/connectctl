@@ -142,7 +142,7 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 		}
 
 		if ierr != nil {
-			if connect.IsRetryable(err) {
+			if connect.IsRetryable(ierr) {
 				time.Sleep(params.SyncErrorRetryPeriod)
 			} else {
 				return false, ierr
