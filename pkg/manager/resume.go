@@ -12,47 +12,19 @@ func (c *ConnectorManager) Resume(connectors []string) error {
 }
 
 func (c *ConnectorManager) resumeAllConnectors() error {
-	c.logger.Info("resuming all connectors")
-
-	existing, resp, err := c.client.ListConnectors()
-	c.logger.WithField("response", resp).Trace("list connectors response")
+	existing, _, err := c.client.ListConnectors()
 	if err != nil {
-		return errors.Wrap(err, "getting existing connectors")
+		return errors.Wrap(err, "error listing connectors")
 	}
-
-	for _, connectorName := range existing {
-		err := c.resumeConnector(connectorName)
-		if err != nil {
-			return errors.Wrapf(err, "resuming connector %s", connectorName)
-		}
-	}
-
-	return nil
+	return c.resumeSpecifiedConnectors(existing)
 }
 
 func (c *ConnectorManager) resumeSpecifiedConnectors(connectors []string) error {
-	c.logger.Info("resuming specified connectors")
 	for _, connectorName := range connectors {
-		err := c.resumeConnector(connectorName)
-		if err != nil {
-			return errors.Wrapf(err, "resuming connector %s", connectorName)
+		if _, err := c.client.ResumeConnector(connectorName); err != nil {
+			return errors.Wrapf(err, "error resuming connector %s", connectorName)
 		}
 	}
 
-	return nil
-}
-
-func (c *ConnectorManager) resumeConnector(connectorName string) error {
-	connectLogger := c.logger.WithField("connector", connectorName)
-	connectLogger.Info("resuming connector")
-
-	resp, err := c.client.ResumeConnector(connectorName)
-	connectLogger.WithField("response", resp).Trace("resume connector response")
-
-	if err != nil {
-		return errors.Wrap(err, "calling resume connector API")
-	}
-
-	connectLogger.Info("resumed connector")
 	return nil
 }

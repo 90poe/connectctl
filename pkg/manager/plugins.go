@@ -8,12 +8,10 @@ import (
 
 // GetAllPlugins returns all the connector plugins installed
 func (c *ConnectorManager) GetAllPlugins() ([]*connect.Plugin, error) {
-	c.logger.Debug("getting all connector plugins")
+	plugins, _, err := c.client.ListPlugins()
 
-	plugins, resp, err := c.client.ListPlugins()
-	c.logger.WithField("response", resp).Trace("list plugins response")
 	if err != nil {
-		return nil, errors.Wrap(err, "list plugins with api")
+		return nil, errors.Wrap(err, "error listing plugins")
 	}
 
 	return plugins, nil

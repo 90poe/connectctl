@@ -7,7 +7,6 @@ import (
 	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/heptiolabs/healthcheck"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 // ConnectorSource will return a slice of the desired connector configuration
@@ -17,7 +16,6 @@ type ConnectorSource func() ([]connect.Connector, error)
 type ConnectorManager struct {
 	config *Config
 	client *connect.Client
-	logger *log.Entry
 
 	readinessState readinessState
 }
@@ -28,12 +26,11 @@ func NewConnectorsManager(config *Config) (*ConnectorManager, error) {
 
 	client, err := connect.NewClient(config.ClusterURL, userAgent)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating connect client")
+		return nil, errors.Wrap(err, "error creating connect client")
 	}
 	return &ConnectorManager{
 		config:         config,
 		client:         client,
-		logger:         log.WithField("cluster", config.ClusterURL),
 		readinessState: unknownState,
 	}, nil
 }
