@@ -20,4 +20,5 @@ require (
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
 	golang.org/x/text v0.3.2 // indirect
+	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )

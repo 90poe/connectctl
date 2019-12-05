@@ -31,6 +31,15 @@ func IsNotFound(err error) bool {
 	if !ok {
 		return false
 	}
+	return apiErr.Code == http.StatusNotFound
+}
 
-	return apiErr.Code == 404
+// IsRetryable indicates if the error could be retryed.
+// See https://github.com/apache/kafka/blob/master/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java#L299-L325
+func IsRetryable(err error) bool {
+	apiErr, ok := err.(APIError)
+	if !ok {
+		return false
+	}
+	return apiErr.Code == http.StatusConflict
 }
