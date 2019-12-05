@@ -1,7 +1,7 @@
 package manager
 
 import (
-	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/90poe/connectctl/pkg/client/connect"
@@ -12,22 +12,30 @@ import (
 // ConnectorSource will return a slice of the desired connector configuration
 type ConnectorSource func() ([]connect.Connector, error)
 
+type client interface {
+	CreateConnector(conn connect.Connector) (*http.Response, error)
+	ListConnectors() ([]string, *http.Response, error)
+	GetConnector(name string) (*connect.Connector, *http.Response, error)
+	ListPlugins() ([]*connect.Plugin, *http.Response, error)
+	GetConnectorStatus(name string) (*connect.ConnectorStatus, *http.Response, error)
+	DeleteConnector(name string) (*http.Response, error)
+	RestartConnectorTask(name string, taskID int) (*http.Response, error)
+	UpdateConnectorConfig(name string, config connect.ConnectorConfig) (*connect.Connector, *http.Response, error)
+	RestartConnector(name string) (*http.Response, error)
+	ResumeConnector(name string) (*http.Response, error)
+	PauseConnector(name string) (*http.Response, error)
+}
+
 // ConnectorManager manages connectors in a Kafka Connect cluster
 type ConnectorManager struct {
 	config *Config
-	client *connect.Client
+	client client
 
 	readinessState readinessState
 }
 
 // NewConnectorsManager creates a new ConnectorManager
-func NewConnectorsManager(config *Config) (*ConnectorManager, error) {
-	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", config.Version)
-
-	client, err := connect.NewClient(config.ClusterURL, userAgent)
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating connect client")
-	}
+func NewConnectorsManager(client client, config *Config) (*ConnectorManager, error) {
 	return &ConnectorManager{
 		config:         config,
 		client:         client,

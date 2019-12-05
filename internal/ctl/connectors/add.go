@@ -1,8 +1,11 @@
 package connectors
 
 import (
+	"fmt"
+
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
+	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
 	"github.com/pkg/errors"
 
@@ -56,7 +59,14 @@ func doAddConnectors(cmd *cobra.Command, params *addConnectorsCmdParams) error {
 		return errors.Wrap(err, "error reading connector configuration from files")
 	}
 
-	mngr, err := manager.NewConnectorsManager(config)
+	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
+
+	client, err := connect.NewClient(params.ClusterURL, connect.WithUserAgent(userAgent))
+	if err != nil {
+		return errors.Wrap(err, "error creating connect client")
+	}
+
+	mngr, err := manager.NewConnectorsManager(client, config)
 	if err != nil {
 		return errors.Wrap(err, "error creating connectors manager")
 	}
