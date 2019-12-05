@@ -80,8 +80,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 
 	clusterLogger.Debug("executing manage connectors command")
 
-	err := checkConfig(params)
-	if err != nil {
+	if err := checkConfig(params); err != nil {
 		return errors.Wrap(err, "Error with configuration")
 	}
 
@@ -103,7 +102,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
-	client, err := connect.NewClient(params.ClusterURL, userAgent)
+	client, err := connect.NewClient(params.ClusterURL, connect.WithUserAgent(userAgent))
 	if err != nil {
 		return errors.Wrap(err, "error creating connect client")
 	}
@@ -113,20 +112,16 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 		return errors.Wrap(err, "Error creating connectors manager")
 	}
 
-	ctx := context.Background()
-
 	if params.EnableHealthCheck {
 		healthCheckHandler := healthcheck.New(mngr)
 
 		go func() {
-			err := healthCheckHandler.Start(params.HealthCheckAddress)
-			if err != nil {
+			if err := healthCheckHandler.Start(params.HealthCheckAddress); err != nil {
 				clusterLogger.WithError(err).Fatalln("Error starting healthcheck")
 			}
 		}()
-
 		// nolint
-		defer healthCheckHandler.Shutdown(ctx)
+		defer healthCheckHandler.Shutdown(context.Background())
 	}
 
 	if params.RunOnce {
@@ -135,13 +130,10 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 		}
 	} else {
 		stopCh := signals.SetupSignalHandler()
-
 		if err := mngr.Manage(source, stopCh); err != nil {
 			return errors.Wrap(err, "Error running connector manager")
 		}
 	}
-
-	clusterLogger.Info("finished executing manage connectors command")
 	return nil
 }
 

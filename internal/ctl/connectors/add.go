@@ -61,7 +61,7 @@ func doAddConnectors(cmd *cobra.Command, params *addConnectorsCmdParams) error {
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
-	client, err := connect.NewClient(params.ClusterURL, userAgent)
+	client, err := connect.NewClient(params.ClusterURL, connect.WithUserAgent(userAgent))
 	if err != nil {
 		return errors.Wrap(err, "error creating connect client")
 	}

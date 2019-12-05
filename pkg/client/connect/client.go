@@ -30,31 +30,47 @@ type Client struct {
 
 	// HTTP client used to communicate with the API. By default
 	// http.DefaultClient will be used.
-	HTTPClient *http.Client
+	httpClient *http.Client
 
 	// User agent used when communicating with the Kafka Connect API.
-	UserAgent string
+	userAgent string
+}
+
+// Option can be supplied that override the default Clients properties
+type Option func(c *Client)
+
+// WithUserAgent allows the userAgent to be overridden
+func WithUserAgent(userAgent string) Option {
+	return func(c *Client) {
+		c.userAgent = userAgent
+	}
+}
+
+// WithHTTPClient allows a specific http.Client to be set
+func WithHTTPClient(httpClient *http.Client) Option {
+	return func(c *Client) {
+		c.httpClient = httpClient
+	}
 }
 
 // NewClient returns a new Kafka Connect API client that communicates host.
-func NewClient(host string, userAgent string) (*Client, error) {
+func NewClient(host string, opts ...Option) (*Client, error) {
 	hostURL, err := url.Parse(host)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing url %s", host)
 	}
 
-	if userAgent == "" {
-		userAgent = userAgentDefault
+	c := &Client{
+		host:       hostURL,
+		userAgent:  userAgentDefault,
+		httpClient: http.DefaultClient,
 	}
 
-	return &Client{host: hostURL, UserAgent: userAgent}, nil
-}
-
-func (c *Client) httpClient() *http.Client {
-	if c.HTTPClient == nil {
-		return http.DefaultClient
+	for _, opt := range opts {
+		opt(c)
 	}
-	return c.HTTPClient
+
+	return c, nil
 }
 
 // Host returns the API root URL the Client is configured to talk to.
@@ -95,9 +111,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 	if contentType != "" {
 		request.Header.Set("Content-Type", contentType)
 	}
-	if c.UserAgent != "" {
-		request.Header.Set("User-Agent", c.UserAgent)
-	}
+	request.Header.Set("User-Agent", c.userAgent)
 
 	return request, nil
 }
@@ -106,7 +120,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 // JSON-decoded and stored in the value pointed to by v, or returned as an
 // error if an API or HTTP error has occurred.
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
-	response, err := c.httpClient().Do(req)
+	response, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

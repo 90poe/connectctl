@@ -36,12 +36,6 @@ type ConnectorManager struct {
 
 // NewConnectorsManager creates a new ConnectorManager
 func NewConnectorsManager(client client, config *Config) (*ConnectorManager, error) {
-	//userAgent := fmt.Sprintf("90poe.io/connectctl/%s", config.Version)
-
-	//client, err := connect.NewClient(config.ClusterURL, userAgent)
-	//if err != nil {
-	//	return nil, errors.Wrap(err, "error creating connect client")
-	//}
 	return &ConnectorManager{
 		config:         config,
 		client:         client,
