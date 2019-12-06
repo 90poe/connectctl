@@ -21,13 +21,13 @@ func (e APIError) Error() string {
 
 // IsAPIError indicates if the error is an struct of type APIError
 func IsAPIError(err error) bool {
-	_, ok := err.(APIError)
+	_, ok := err.(*APIError)
 	return ok
 }
 
 // IsNotFound indicates if the error represents an HTTP 404 status code
 func IsNotFound(err error) bool {
-	apiErr, ok := err.(APIError)
+	apiErr, ok := err.(*APIError)
 	if !ok {
 		return false
 	}
@@ -37,7 +37,7 @@ func IsNotFound(err error) bool {
 // IsRetryable indicates if the error could be retryed.
 // See https://github.com/apache/kafka/blob/master/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java#L299-L325
 func IsRetryable(err error) bool {
-	apiErr, ok := err.(APIError)
+	apiErr, ok := err.(*APIError)
 	if !ok {
 		return false
 	}

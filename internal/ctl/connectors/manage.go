@@ -142,16 +142,17 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 		}
 
 		if ierr != nil {
-			if connect.IsRetryable(ierr) {
+			rootCause := errors.Cause(ierr)
+			if connect.IsRetryable(rootCause) {
 				time.Sleep(params.SyncErrorRetryPeriod)
 			} else {
 				return false, ierr
 			}
 		}
-		return attempt < params.SyncErrorRetryMax, ierr
+		return attempt < params.SyncErrorRetryMax, nil
 	})
 	if err != nil {
-		return errors.Wrap(err, "error running manage")
+		return errors.Wrap(err, "error running manager")
 	}
 	return nil
 }

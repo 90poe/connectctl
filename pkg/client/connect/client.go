@@ -57,7 +57,7 @@ func WithHTTPClient(httpClient *http.Client) Option {
 func NewClient(host string, opts ...Option) (*Client, error) {
 	hostURL, err := url.Parse(host)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parsing url %s", host)
+		return nil, errors.Wrapf(err, "error parsing url %s", host)
 	}
 
 	c := &Client{
@@ -159,7 +159,7 @@ func (c *Client) doRequest(method, path string, body, v interface{}) (*http.Resp
 }
 
 func buildError(req *http.Request, resp *http.Response) error {
-	apiError := APIError{Response: resp}
+	apiError := &APIError{Response: resp}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err == nil && data != nil {
 		_ = json.Unmarshal(data, &apiError) // Fall back on general error below

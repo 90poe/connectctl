@@ -6,6 +6,7 @@ import (
 
 	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager/mocks"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +16,7 @@ func Test_MissingConnectorsAreAdded(t *testing.T) {
 
 	mock := &mocks.FakeClient{
 		GetConnectorStub: func(string) (*connect.Connector, *http.Response, error) {
-			return nil, nil, connect.APIError{Code: http.StatusNotFound}
+			return nil, nil, &connect.APIError{Code: http.StatusNotFound}
 		},
 		CreateConnectorStub: func(c connect.Connector) (*http.Response, error) {
 
@@ -71,4 +72,28 @@ func Test_ExistingConnectorsAreRemovedIfNotListed(t *testing.T) {
 	require.Nil(t, err)
 	require.True(t, deleteCalled)
 
+}
+
+func Test_ManageErrorsAreAPIErrorsIfUnwrapped(t *testing.T) {
+
+	mock := &mocks.FakeClient{
+		GetConnectorStub: func(string) (*connect.Connector, *http.Response, error) {
+			return nil, nil, &connect.APIError{Code: http.StatusInternalServerError}
+		},
+	}
+	config := &Config{}
+
+	cm, err := NewConnectorsManager(mock, config)
+	require.Nil(t, err)
+
+	source := func() ([]connect.Connector, error) {
+		return []connect.Connector{
+			connect.Connector{Name: "one"},
+		}, nil
+
+	}
+
+	err = cm.Sync(source)
+	rootCause := errors.Cause(err)
+	require.True(t, connect.IsAPIError(rootCause))
 }
