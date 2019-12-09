@@ -133,7 +133,9 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 
 	stopCh := signals.SetupSignalHandler()
 
-	err = try.Do(func(attempt int) (bool, error) {
+	try.MaxRetries = params.SyncErrorRetryMax
+
+	return try.Do(func(attempt int) (bool, error) {
 		var ierr error
 		if params.RunOnce {
 			ierr = mngr.Sync(source)
@@ -142,19 +144,20 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 		}
 
 		if ierr != nil {
+
+			lgr := logger.WithError(err)
+
 			rootCause := errors.Cause(ierr)
 			if connect.IsRetryable(rootCause) {
+				lgr.WithField("attempt", attempt).Error("recoverable error when running manage")
 				time.Sleep(params.SyncErrorRetryPeriod)
 			} else {
+				lgr.Error("non-recoverable error when running manage")
 				return false, ierr
 			}
 		}
-		return attempt < params.SyncErrorRetryMax, nil
+		return true, nil
 	})
-	if err != nil {
-		return errors.Wrap(err, "error running manager")
-	}
-	return nil
 }
 
 func findSource(files []string, directory, envar string, cmd *cobra.Command) (manager.ConnectorSource, error) {

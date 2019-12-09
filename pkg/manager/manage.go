@@ -20,6 +20,8 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 		case <-syncChannel:
 			err := c.Sync(source)
 			if err != nil {
+				// set back into an unhealthy state
+				c.readinessState = errorState
 				return errors.Wrap(err, "error synchronising connectors for source")
 			}
 			// mark ourselves as being in an ok state as we have
