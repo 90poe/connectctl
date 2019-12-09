@@ -37,7 +37,7 @@ type manageConnectorsCmdParams struct {
 func manageConnectorsCmd() *cobra.Command {
 	params := &manageConnectorsCmdParams{
 		SyncPeriod:           5 * time.Minute,
-		SyncErrorRetryMax:    5,
+		SyncErrorRetryMax:    10,
 		SyncErrorRetryPeriod: 1 * time.Minute,
 		HealthCheckAddress:   ":9000",
 	}
