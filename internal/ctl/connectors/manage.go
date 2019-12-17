@@ -33,6 +33,7 @@ type manageConnectorsCmdParams struct {
 	RunOnce              bool
 	EnableHealthCheck    bool
 	HealthCheckAddress   string
+	HTTPClientTimeout    time.Duration
 }
 
 func manageConnectorsCmd() *cobra.Command {
@@ -41,6 +42,7 @@ func manageConnectorsCmd() *cobra.Command {
 		SyncErrorRetryMax:    10,
 		SyncErrorRetryPeriod: 1 * time.Minute,
 		HealthCheckAddress:   ":9000",
+		HTTPClientTimeout:    20 * time.Second,
 	}
 
 	manageCmd := &cobra.Command{
@@ -77,6 +79,10 @@ if you specify --once then it will sync once and then exit.`,
 	manageCmd.Flags().StringVar(&params.HealthCheckAddress, "healthcheck-address", params.HealthCheckAddress, "if enabled the healthchecks ('/live' and '/ready') will be available from this address")
 	_ = viper.BindPFlag("healthcheck-address", manageCmd.PersistentFlags().Lookup("healthcheck-address"))
 
+	manageCmd.Flags().DurationVar(&params.HTTPClientTimeout, "http-client-timeout", params.HTTPClientTimeout, "HTTP client timeout")
+	_ = viper.BindPFlag("http-client-timeout", manageCmd.PersistentFlags().Lookup("http-client-timeout"))
+	:wqa
+
 	return manageCmd
 }
 
@@ -100,7 +106,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
-	client, err := connect.NewClient(params.ClusterURL, connect.WithUserAgent(userAgent), connect.WithHTTPClient(&http.Client{Timeout: time.Second * 5}))
+	client, err := connect.NewClient(params.ClusterURL, connect.WithUserAgent(userAgent), connect.WithHTTPClient(&http.Client{Timeout: params.HTTPClientTimeout}))
 	if err != nil {
 		return errors.Wrap(err, "error creating connect client")
 	}
@@ -163,7 +169,6 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 		return true, errors.New("retry please")
 	})
 }
-
 func findSource(files []string, directory, envar string, cmd *cobra.Command) (manager.ConnectorSource, error) {
 	switch {
 	case len(files) > 0:
