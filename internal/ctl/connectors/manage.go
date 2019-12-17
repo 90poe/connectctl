@@ -160,7 +160,7 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 			}
 		}
 		lgr.Info("attempt finished")
-		return true, nil
+		return true, errors.New("retry please")
 	})
 }
 
