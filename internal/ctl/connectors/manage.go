@@ -3,7 +3,6 @@ package connectors
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/90poe/connectctl/internal/ctl"
@@ -100,7 +99,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
-	client, err := connect.NewClient(params.ClusterURL, connect.WithUserAgent(userAgent), connect.WithHTTPClient(&http.Client{Timeout: time.Second * 5}))
+	client, err := connect.NewClient(params.ClusterURL, connect.WithUserAgent(userAgent))
 	if err != nil {
 		return errors.Wrap(err, "error creating connect client")
 	}
@@ -137,19 +136,16 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 	try.MaxRetries = params.SyncErrorRetryMax
 
 	return try.Do(func(attempt int) (bool, error) {
-		lgr := logger.WithField("attempt", attempt)
-
 		var ierr error
 		if params.RunOnce {
-			lgr.Info("running once")
 			ierr = mngr.Sync(source)
 		} else {
-			lgr.Info("managing")
 			ierr = mngr.Manage(source, stopCh)
 		}
 
 		if ierr != nil {
-			lgr = logger.WithError(ierr)
+			lgr := logger.WithError(ierr)
+
 			rootCause := errors.Cause(ierr)
 			if connect.IsRetryable(rootCause) {
 				lgr.WithField("attempt", attempt).Error("recoverable error when running manage")
