@@ -81,7 +81,6 @@ if you specify --once then it will sync once and then exit.`,
 
 	manageCmd.Flags().DurationVar(&params.HTTPClientTimeout, "http-client-timeout", params.HTTPClientTimeout, "HTTP client timeout")
 	_ = viper.BindPFlag("http-client-timeout", manageCmd.PersistentFlags().Lookup("http-client-timeout"))
-	:wqa
 
 	return manageCmd
 }
