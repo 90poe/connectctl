@@ -144,7 +144,7 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 		}
 
 		if ierr != nil {
-			lgr := logger.WithError(err)
+			lgr := logger.WithError(ierr)
 
 			rootCause := errors.Cause(ierr)
 			if connect.IsRetryable(rootCause) {
