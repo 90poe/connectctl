@@ -100,8 +100,6 @@ func Test_Manage_ErrorsAreAPIErrorsIfUnwrapped(t *testing.T) {
 
 func Test_Manage_ConnectorRunning_FailedTasksAreRestarted(t *testing.T) {
 
-	restartConnectorTaskCalled := false
-
 	mock := &mocks.FakeClient{
 		GetConnectorStatusStub: func(string) (*connect.ConnectorStatus, *http.Response, error) {
 			return &connect.ConnectorStatus{
@@ -114,12 +112,7 @@ func Test_Manage_ConnectorRunning_FailedTasksAreRestarted(t *testing.T) {
 					},
 				},
 			}, nil, nil
-		},
-		RestartConnectorTaskStub: func(name string, taskID int) (*http.Response, error) {
-			restartConnectorTaskCalled = true
-			return nil, nil
-		},
-	}
+		}}
 
 	config := &Config{
 		AutoRestart: true,
@@ -136,12 +129,10 @@ func Test_Manage_ConnectorRunning_FailedTasksAreRestarted(t *testing.T) {
 
 	err = cm.Sync(source)
 	require.Nil(t, err)
-	require.True(t, restartConnectorTaskCalled)
+	require.Equal(t, mock.RestartConnectorTaskCallCount(), 1)
 }
 
 func Test_Manage_ConnectorFailed_IsRestarted(t *testing.T) {
-
-	restartConnectorCalled := false
 
 	mock := &mocks.FakeClient{
 		GetConnectorStatusStub: func(string) (*connect.ConnectorStatus, *http.Response, error) {
@@ -156,10 +147,6 @@ func Test_Manage_ConnectorFailed_IsRestarted(t *testing.T) {
 				},
 			}, nil, nil
 		},
-		RestartConnectorStub: func(name string) (*http.Response, error) {
-			restartConnectorCalled = true
-			return nil, nil
-		},
 	}
 
 	config := &Config{
@@ -177,5 +164,5 @@ func Test_Manage_ConnectorFailed_IsRestarted(t *testing.T) {
 
 	err = cm.Sync(source)
 	require.Nil(t, err)
-	require.True(t, restartConnectorCalled)
+	require.Equal(t, mock.RestartConnectorTaskCallCount(), 0)
 }
