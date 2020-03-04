@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_MissingConnectorsAreAdded(t *testing.T) {
+func Test_Manage_MissingConnectorsAreAdded(t *testing.T) {
 
 	createCalled := false
 
@@ -44,7 +44,7 @@ func Test_MissingConnectorsAreAdded(t *testing.T) {
 
 }
 
-func Test_ExistingConnectorsAreRemovedIfNotListed(t *testing.T) {
+func Test_Manage_ExistingConnectorsAreRemovedIfNotListed(t *testing.T) {
 
 	deleteCalled := false
 
@@ -74,7 +74,7 @@ func Test_ExistingConnectorsAreRemovedIfNotListed(t *testing.T) {
 
 }
 
-func Test_ManageErrorsAreAPIErrorsIfUnwrapped(t *testing.T) {
+func Test_Manage_ErrorsAreAPIErrorsIfUnwrapped(t *testing.T) {
 
 	mock := &mocks.FakeClient{
 		GetConnectorStub: func(string) (*connect.Connector, *http.Response, error) {
@@ -96,4 +96,86 @@ func Test_ManageErrorsAreAPIErrorsIfUnwrapped(t *testing.T) {
 	err = cm.Sync(source)
 	rootCause := errors.Cause(err)
 	require.True(t, connect.IsAPIError(rootCause))
+}
+
+func Test_Manage_ConnectorRunning_FailedTasksAreRestarted(t *testing.T) {
+
+	restartConnectorTaskCalled := false
+
+	mock := &mocks.FakeClient{
+		GetConnectorStatusStub: func(string) (*connect.ConnectorStatus, *http.Response, error) {
+			return &connect.ConnectorStatus{
+				Connector: connect.ConnectorState{
+					State: "RUNNING",
+				},
+				Tasks: []connect.TaskState{
+					connect.TaskState{
+						State: "FAILED",
+					},
+				},
+			}, nil, nil
+		},
+		RestartConnectorTaskStub: func(name string, taskID int) (*http.Response, error) {
+			restartConnectorTaskCalled = true
+			return nil, nil
+		},
+	}
+
+	config := &Config{
+		AutoRestart: true,
+	}
+
+	cm, err := NewConnectorsManager(mock, config)
+	require.Nil(t, err)
+
+	source := func() ([]connect.Connector, error) {
+		return []connect.Connector{
+			connect.Connector{Name: "foo"},
+		}, nil
+	}
+
+	err = cm.Sync(source)
+	require.Nil(t, err)
+	require.True(t, restartConnectorTaskCalled)
+}
+
+func Test_Manage_ConnectorFailed_IsRestarted(t *testing.T) {
+
+	restartConnectorCalled := false
+
+	mock := &mocks.FakeClient{
+		GetConnectorStatusStub: func(string) (*connect.ConnectorStatus, *http.Response, error) {
+			return &connect.ConnectorStatus{
+				Connector: connect.ConnectorState{
+					State: "FAILED",
+				},
+				Tasks: []connect.TaskState{
+					connect.TaskState{
+						State: "FAILED",
+					},
+				},
+			}, nil, nil
+		},
+		RestartConnectorStub: func(name string) (*http.Response, error) {
+			restartConnectorCalled = true
+			return nil, nil
+		},
+	}
+
+	config := &Config{
+		AutoRestart: true,
+	}
+
+	cm, err := NewConnectorsManager(mock, config)
+	require.Nil(t, err)
+
+	source := func() ([]connect.Connector, error) {
+		return []connect.Connector{
+			connect.Connector{Name: "foo"},
+		}, nil
+	}
+
+	err = cm.Sync(source)
+	require.Nil(t, err)
+	require.True(t, restartConnectorCalled)
 }
