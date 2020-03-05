@@ -61,13 +61,13 @@ if you specify --once then it will sync once and then exit.`,
 	ctl.AddCommonConnectorsFlags(manageCmd, &params.ClusterURL)
 	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory, &params.EnvVar)
 
-	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", params.SyncPeriod, "How often to sync with the connect cluster")
+	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", params.SyncPeriod, "how often to sync with the connect cluster")
 	_ = viper.BindPFlag("sync-period", manageCmd.PersistentFlags().Lookup("sync-period"))
 
-	manageCmd.Flags().BoolVarP(&params.AllowPurge, "allow-purge", "", false, "If true it will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
+	manageCmd.Flags().BoolVarP(&params.AllowPurge, "allow-purge", "", false, "if set connectctl will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
 	_ = viper.BindPFlag("allow-purge", manageCmd.PersistentFlags().Lookup("allow-purge"))
 
-	manageCmd.Flags().BoolVar(&params.AutoRestart, "auto-restart", false, "if supplied tasks that are failed with automatically be restarted")
+	manageCmd.Flags().BoolVar(&params.AutoRestart, "auto-restart", false, "if set connectors and tasks that are failed with automatically be restarted")
 	_ = viper.BindPFlag("auto-restart", manageCmd.PersistentFlags().Lookup("auto-restart"))
 
 	manageCmd.Flags().BoolVar(&params.RunOnce, "once", false, "if supplied sync will run once and command will exit")
