@@ -13,12 +13,12 @@ type TaskPredicate func(connect.TaskState) bool
 
 // IsRunning returns true if the connector task is in a RUNNING state
 func IsRunning(task connect.TaskState) bool {
-	return task.State == "RUNNING"
+	return task.State == "RUNNING" //nolint
 }
 
 // IsNotRunning returns true if the connector task is not in a RUNNING state
 func IsNotRunning(task connect.TaskState) bool {
-	return task.State != "RUNNING"
+	return task.State != "RUNNING" //nolint
 }
 
 // ByID returns a predicate that returns true if the connector task has one of the given task IDs

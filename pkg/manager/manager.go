@@ -12,10 +12,6 @@ import (
 // ConnectorSource will return a slice of the desired connector configuration
 type ConnectorSource func() ([]connect.Connector, error)
 
-const (
-	defaultRestartPeriod = time.Second * 10
-)
-
 type client interface {
 	CreateConnector(conn connect.Connector) (*http.Response, error)
 	ListConnectors() ([]string, *http.Response, error)

@@ -134,7 +134,7 @@ func Test_Manage_ConnectorRunning_FailedTasksAreRestarted(t *testing.T) {
 
 	err = cm.Sync(source)
 	require.NotNil(t, err)
-	require.Equal(t, 1, mock.RestartConnectorTaskCallCount())
+	require.Equal(t, 2, mock.RestartConnectorTaskCallCount())
 }
 
 func Test_Manage_ConnectorFailed_IsRestarted(t *testing.T) {
