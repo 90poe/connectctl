@@ -13,7 +13,12 @@ type Config struct {
 
 	Version string `json:"version"`
 
-	RestartPolicy *RestartPolicy `json:"restart_policy"`
+	GlobalMaxConnectorRestarts   int           `json:"global_max_connector_restarts"`
+	GlobalConnectorRestartPeriod time.Duration `json:"global_connector_restart_period"`
+	GlobalMaxTaskRestarts        int           `json:"global_max_task_restarts"`
+	GlobalTaskRestartPeriod      time.Duration `json:"global_task_restart_period"`
+
+	RestartOverrides *RestartPolicy `json:"restart_policy"`
 }
 
 // RestartPolicy lists each connectors maximum restart policy

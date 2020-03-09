@@ -44,7 +44,7 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	// creating a runtime restart policy here, overriding with the supplied one (if any)
 	// Ensuring that we have a policy defined for each connector we are manging here
 	// dramatically simplifies the management and restart code
-	policy := runtimePolicyFromConnectors(connectors, c.config.RestartPolicy)
+	policy := runtimePolicyFromConnectors(connectors, c.config)
 
 	if err = c.reconcileConnectors(connectors, policy); err != nil {
 		return errors.Wrap(err, "error synchronising connectors")

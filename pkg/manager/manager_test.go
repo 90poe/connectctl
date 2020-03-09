@@ -211,7 +211,7 @@ func Test_Manage_ConnectorFailed_IsRestarted_WithPolicy(t *testing.T) {
 
 	config := &Config{
 		AutoRestart: true,
-		RestartPolicy: &RestartPolicy{
+		RestartOverrides: &RestartPolicy{
 			Connectors: map[string]Policy{
 				"foo": Policy{
 					MaxConnectorRestarts:   10,
@@ -275,7 +275,7 @@ func Test_Manage_ConnectorFailed_IsRestarted_WithPolicy_RestartWorks(t *testing.
 
 	config := &Config{
 		AutoRestart: true,
-		RestartPolicy: &RestartPolicy{
+		RestartOverrides: &RestartPolicy{
 			Connectors: map[string]Policy{
 				"foo": Policy{
 					MaxConnectorRestarts:   10,

@@ -14,22 +14,38 @@ const (
 	defaultRestartPeriod = time.Second * 10
 )
 
-func runtimePolicyFromConnectors(connectors []connect.Connector, overrides *RestartPolicy) runtimeRestartPolicy {
+func runtimePolicyFromConnectors(connectors []connect.Connector, config *Config) runtimeRestartPolicy {
 	// create restart policy here, overriding with any supplied values (if any)
 	policy := runtimeRestartPolicy{}
 
 	for _, c := range connectors {
-		policy[c.Name] = Policy{
+		p := Policy{
 			MaxConnectorRestarts:   1,
 			ConnectorRestartPeriod: defaultRestartPeriod,
 			MaxTaskRestarts:        1,
 			TaskRestartPeriod:      defaultRestartPeriod,
 		}
+		if config != nil {
+			// apply globals (if any)
+			if config.GlobalMaxConnectorRestarts != 0 {
+				p.MaxConnectorRestarts = config.GlobalMaxConnectorRestarts
+			}
+			if config.GlobalMaxTaskRestarts != 0 {
+				p.MaxTaskRestarts = config.GlobalMaxTaskRestarts
+			}
+			if config.GlobalConnectorRestartPeriod != 0 {
+				p.ConnectorRestartPeriod = config.GlobalConnectorRestartPeriod
+			}
+			if config.GlobalTaskRestartPeriod != 0 {
+				p.TaskRestartPeriod = config.GlobalTaskRestartPeriod
+			}
+		}
+		policy[c.Name] = p
 	}
 
-	// apply overrides
-	if overrides != nil {
-		for k, v := range overrides.Connectors {
+	// apply overrides (if any)
+	if config != nil && config.RestartOverrides != nil {
+		for k, v := range config.RestartOverrides.Connectors {
 			p := policy[k]
 
 			if v.MaxConnectorRestarts != 0 {
