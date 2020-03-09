@@ -15,7 +15,7 @@ const (
 )
 
 func runtimePolicyFromConnectors(connectors []connect.Connector, overrides *RestartPolicy) runtimeRestartPolicy {
-	// create dynamic restart policy here, overriding with any supplied values (if any)
+	// create restart policy here, overriding with any supplied values (if any)
 	policy := runtimeRestartPolicy{}
 
 	for _, c := range connectors {

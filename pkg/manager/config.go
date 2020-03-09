@@ -17,10 +17,10 @@ type Config struct {
 }
 
 // RestartPolicy lists each connectors maximum restart policy
-// If a policy does not exist for a connector the connector ir task will be restarted once.
+// If AutoRestart == true
+// If a policy does not exist for a connector the connector or task will be restarted once.
 // If a connector or task is restarted the count of failed attempts is reset.
-// If the maximum number of unsuccessful restarts is reached the manager will
-// return and connectctl will stop.
+// If the number of unsuccessful restarts is reached the manager will return and connectctl will stop.
 type RestartPolicy struct {
 	Connectors map[string]Policy `json:"connectors"`
 }
