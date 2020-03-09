@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/90poe/connectctl/pkg/client/connect"
@@ -39,27 +40,31 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	if err != nil {
 		return errors.Wrap(err, "error getting connector configurations")
 	}
-	if err = c.reconcileConnectors(connectors); err != nil {
+
+	// creating a runtime restart policy here, overriding with the supplied one (if any)
+	// Ensuring that we have a policy defined for each connector we are manging here
+	// dramatically simplifies the management and restart code
+	policy := runtimePolicyFromConnectors(connectors, c.config.RestartPolicy)
+
+	if err = c.reconcileConnectors(connectors, policy); err != nil {
 		return errors.Wrap(err, "error synchronising connectors")
 	}
 	return nil
 }
 
-func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector) error {
+func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector, restartPolicy runtimeRestartPolicy) error {
 	for _, connector := range connectors {
 		if err := c.reconcileConnector(connector); err != nil {
 			return errors.Wrapf(err, "error reconciling connector: %s", connector.Name)
 		}
 	}
-
 	if c.config.AllowPurge {
 		if err := c.checkAndDeleteUnmanaged(connectors); err != nil {
 			return errors.Wrapf(err, "error checking for unmanaged connectors to purge")
 		}
 	}
-
 	if c.config.AutoRestart {
-		if err := c.autoRestart(connectors); err != nil {
+		if err := c.autoRestart(connectors, restartPolicy); err != nil {
 			return errors.Wrap(err, "error checking connector status")
 		}
 	}
@@ -67,34 +72,87 @@ func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector) e
 	return nil
 }
 
-func (c *ConnectorManager) autoRestart(connectors []connect.Connector) error {
+func (c *ConnectorManager) autoRestart(connectors []connect.Connector, restartPolicy runtimeRestartPolicy) error {
 	for _, connector := range connectors {
-		status, _, err := c.client.GetConnectorStatus(connector.Name)
-
+		name := connector.Name
+		err := c.retryRestartConnector(name, restartPolicy[name].MaxConnectorRestarts, restartPolicy[name].ConnectorRestartPeriod)
 		if err != nil {
-			return errors.Wrapf(err, "error getting connector status for %s", connector.Name)
+			return err
 		}
-
-		// Valid statuses are: RUNNING, UNASSIGNED, PAUSED, FAILED
-		if status.Connector.State == "FAILED" {
-			// CONSIDER : add feature to track errors restarting connectors
-			// Maybe introduce a policy to tolerate a certain amount of attempts
-			// then error or fail the healthcheck
-			_ = c.restartConnector(connector.Name)
-			continue
-		}
-
-		// If the connector isn't failed it could have some tasks that are failed
-		for _, taskState := range status.Tasks {
-			if IsNotRunning(taskState) {
-				// CONSIDER : add feature to track errors restarting tasks
-				// Maybe introduce a policy to tolerate a certain amount of attempts
-				// then error or fail the healthcheck
-				_, _ = c.client.RestartConnectorTask(connector.Name, taskState.ID)
-			}
+		err = c.retryRestartConnectorTask(name, restartPolicy[name].MaxTaskRestarts, restartPolicy[name].TaskRestartPeriod)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func (c *ConnectorManager) retryRestartConnector(name string, retrys int, retryPeriod time.Duration) error {
+	attempts := 0
+	for attempts <= retrys {
+		status, _, err := c.client.GetConnectorStatus(name)
+
+		if err != nil {
+			return errors.Wrapf(err, "error getting connector status: %s", name)
+		}
+
+		if isConnectorFailed(status.Connector) {
+			err = c.restartConnector(name)
+			if err != nil {
+				return errors.Wrapf(err, "error restarting connector: %s", name)
+			}
+		} else {
+			return nil
+		}
+
+		attempts++
+		time.Sleep(retryPeriod)
+	}
+	return fmt.Errorf("error restarting connector: %s, retrys: %d", name, retrys)
+}
+
+func isConnectorRunning(c connect.ConnectorState) bool {
+	return c.State == "RUNNING" // nolint
+}
+
+func isConnectorFailed(c connect.ConnectorState) bool {
+	return c.State == "FAILED" // nolint
+}
+
+func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, retryPeriod time.Duration) error {
+	attempts := 0
+	for attempts <= retrys {
+		status, _, err := c.client.GetConnectorStatus(name)
+
+		if err != nil {
+			return errors.Wrapf(err, "error getting connector status: %s", name)
+		}
+
+		if isConnectorRunning(status.Connector) {
+			runningTasks := 0
+
+			for _, taskState := range status.Tasks {
+				if IsNotRunning(taskState) {
+					_, err := c.client.RestartConnectorTask(name, taskState.ID)
+
+					if err != nil {
+						return err
+					}
+				} else {
+					runningTasks++
+				}
+			}
+			if runningTasks == len(status.Tasks) {
+				return nil
+			}
+		} else {
+			return nil
+		}
+
+		attempts++
+		time.Sleep(retryPeriod)
+	}
+	return fmt.Errorf("error restarting connector task: %s, retrys: %d", name, retrys)
 }
 
 func (c *ConnectorManager) checkAndDeleteUnmanaged(connectors []connect.Connector) error {
