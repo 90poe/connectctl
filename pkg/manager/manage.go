@@ -75,11 +75,11 @@ func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector, r
 func (c *ConnectorManager) autoRestart(connectors []connect.Connector, restartPolicy runtimeRestartPolicy) error {
 	for _, connector := range connectors {
 		name := connector.Name
-		err := c.retryRestartConnector(name, restartPolicy[name].MaxConnectorRestarts, restartPolicy[name].ConnectorRestartPeriod)
+		err := c.retryRestartConnector(name, restartPolicy[name].ConnectorRestartsMax, restartPolicy[name].ConnectorRestartPeriod)
 		if err != nil {
 			return err
 		}
-		err = c.retryRestartConnectorTask(name, restartPolicy[name].MaxTaskRestarts, restartPolicy[name].TaskRestartPeriod)
+		err = c.retryRestartConnectorTask(name, restartPolicy[name].TaskRestartsMax, restartPolicy[name].TaskRestartPeriod)
 		if err != nil {
 			return err
 		}

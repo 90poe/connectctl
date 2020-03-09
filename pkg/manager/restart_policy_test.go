@@ -23,8 +23,8 @@ func Test_RestartPolicy_Default(t *testing.T) {
 
 	foo := policy["foo"]
 
-	require.Equal(t, 1, foo.MaxConnectorRestarts)
-	require.Equal(t, 1, foo.MaxTaskRestarts)
+	require.Equal(t, 1, foo.ConnectorRestartsMax)
+	require.Equal(t, 1, foo.TaskRestartsMax)
 	require.Equal(t, defaultRestartPeriod, foo.ConnectorRestartPeriod)
 	require.Equal(t, defaultRestartPeriod, foo.TaskRestartPeriod)
 }
@@ -37,9 +37,9 @@ func Test_RestartPolicy_Globals(t *testing.T) {
 	}
 
 	policy := runtimePolicyFromConnectors(connectors, &Config{
-		GlobalMaxConnectorRestarts:   97,
+		GlobalConnectorRestartsMax:   97,
 		GlobalConnectorRestartPeriod: time.Second * 98,
-		GlobalMaxTaskRestarts:        99,
+		GlobalTaskRestartsMax:        99,
 		GlobalTaskRestartPeriod:      time.Second * 100,
 	})
 
@@ -48,9 +48,9 @@ func Test_RestartPolicy_Globals(t *testing.T) {
 
 	foo := policy["foo"]
 
-	require.Equal(t, 97, foo.MaxConnectorRestarts)
+	require.Equal(t, 97, foo.ConnectorRestartsMax)
 	require.Equal(t, time.Second*98, foo.ConnectorRestartPeriod)
-	require.Equal(t, 99, foo.MaxTaskRestarts)
+	require.Equal(t, 99, foo.TaskRestartsMax)
 	require.Equal(t, time.Second*100, foo.TaskRestartPeriod)
 }
 
@@ -64,8 +64,8 @@ func Test_RestartPolicy_Override(t *testing.T) {
 	ovveride := RestartPolicy{
 		Connectors: map[string]Policy{
 			"foo": Policy{
-				MaxConnectorRestarts:   10,
-				MaxTaskRestarts:        11,
+				ConnectorRestartsMax:   10,
+				TaskRestartsMax:        11,
 				TaskRestartPeriod:      time.Second * 100,
 				ConnectorRestartPeriod: time.Second * 101,
 			},
@@ -80,8 +80,8 @@ func Test_RestartPolicy_Override(t *testing.T) {
 
 	foo := policy["foo"]
 
-	require.Equal(t, 10, foo.MaxConnectorRestarts)
-	require.Equal(t, 11, foo.MaxTaskRestarts)
+	require.Equal(t, 10, foo.ConnectorRestartsMax)
+	require.Equal(t, 11, foo.TaskRestartsMax)
 	require.Equal(t, time.Second*101, foo.ConnectorRestartPeriod)
 	require.Equal(t, time.Second*100, foo.TaskRestartPeriod)
 }

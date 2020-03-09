@@ -34,9 +34,9 @@ type manageConnectorsCmdParams struct {
 	EnableHealthCheck            bool
 	HealthCheckAddress           string
 	HTTPClientTimeout            time.Duration
-	GlobalMaxConnectorRestarts   int
+	GlobalConnectorRestartsMax   int
 	GlobalConnectorRestartPeriod time.Duration
-	GlobalMaxTaskRestarts        int
+	GlobalTaskRestartsMax        int
 	GlobalTaskRestartPeriod      time.Duration
 }
 
@@ -47,9 +47,9 @@ func manageConnectorsCmd() *cobra.Command { // nolint: funlen
 		SyncErrorRetryPeriod:         1 * time.Minute,
 		HealthCheckAddress:           ":9000",
 		HTTPClientTimeout:            20 * time.Second,
-		GlobalMaxConnectorRestarts:   5,
+		GlobalConnectorRestartsMax:   5,
 		GlobalConnectorRestartPeriod: 10 * time.Second,
-		GlobalMaxTaskRestarts:        5,
+		GlobalTaskRestartsMax:        5,
 		GlobalTaskRestartPeriod:      10 * time.Second,
 	}
 
@@ -90,14 +90,14 @@ if you specify --once then it will sync once and then exit.`,
 	manageCmd.Flags().DurationVar(&params.HTTPClientTimeout, "http-client-timeout", params.HTTPClientTimeout, "HTTP client timeout")
 	_ = viper.BindPFlag("http-client-timeout", manageCmd.PersistentFlags().Lookup("http-client-timeout"))
 
-	manageCmd.Flags().IntVar(&params.GlobalMaxConnectorRestarts, "global-connector-max-restarts", params.GlobalMaxConnectorRestarts, "maximum times a failed connector will be restarted")
-	_ = viper.BindPFlag("global-connector-max-restarts", manageCmd.PersistentFlags().Lookup("global-connector-max-restarts"))
+	manageCmd.Flags().IntVar(&params.GlobalConnectorRestartsMax, "global-connector-restarts-max", params.GlobalConnectorRestartsMax, "maximum times a failed connector will be restarted")
+	_ = viper.BindPFlag("global-connector-restarts-max", manageCmd.PersistentFlags().Lookup("global-connector-restarts-max"))
 
 	manageCmd.Flags().DurationVar(&params.GlobalConnectorRestartPeriod, "global-connector-restart-period", params.GlobalConnectorRestartPeriod, "period of time between failed connector restarts")
 	_ = viper.BindPFlag("global-connector-restart-period", manageCmd.PersistentFlags().Lookup("global-connector-restart-period"))
 
-	manageCmd.Flags().IntVar(&params.GlobalMaxTaskRestarts, "global-task-max-restarts", params.GlobalMaxTaskRestarts, "maximum times a failed task will be restarted")
-	_ = viper.BindPFlag("global-task-max-restarts", manageCmd.PersistentFlags().Lookup("global-task-max-restarts"))
+	manageCmd.Flags().IntVar(&params.GlobalTaskRestartsMax, "global-task-restarts-max", params.GlobalTaskRestartsMax, "maximum times a failed task will be restarted")
+	_ = viper.BindPFlag("global-task-restarts-max", manageCmd.PersistentFlags().Lookup("global-task-restarts-max"))
 
 	manageCmd.Flags().DurationVar(&params.GlobalTaskRestartPeriod, "global-task-restart-period", params.GlobalTaskRestartPeriod, "period of time between failed task restarts")
 	_ = viper.BindPFlag("global-task-restart-period", manageCmd.PersistentFlags().Lookup("global-task-restart-period"))
@@ -119,9 +119,9 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 		AllowPurge:                   params.AllowPurge,
 		AutoRestart:                  params.AutoRestart,
 		Version:                      version.Version,
-		GlobalMaxConnectorRestarts:   params.GlobalMaxConnectorRestarts,
+		GlobalConnectorRestartsMax:   params.GlobalConnectorRestartsMax,
 		GlobalConnectorRestartPeriod: params.GlobalConnectorRestartPeriod,
-		GlobalMaxTaskRestarts:        params.GlobalMaxTaskRestarts,
+		GlobalTaskRestartsMax:        params.GlobalTaskRestartsMax,
 		GlobalTaskRestartPeriod:      params.GlobalTaskRestartPeriod,
 	}
 

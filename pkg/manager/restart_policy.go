@@ -20,18 +20,18 @@ func runtimePolicyFromConnectors(connectors []connect.Connector, config *Config)
 
 	for _, c := range connectors {
 		p := Policy{
-			MaxConnectorRestarts:   1,
+			ConnectorRestartsMax:   1,
 			ConnectorRestartPeriod: defaultRestartPeriod,
-			MaxTaskRestarts:        1,
+			TaskRestartsMax:        1,
 			TaskRestartPeriod:      defaultRestartPeriod,
 		}
 		if config != nil {
 			// apply globals (if any)
-			if config.GlobalMaxConnectorRestarts != 0 {
-				p.MaxConnectorRestarts = config.GlobalMaxConnectorRestarts
+			if config.GlobalConnectorRestartsMax != 0 {
+				p.ConnectorRestartsMax = config.GlobalConnectorRestartsMax
 			}
-			if config.GlobalMaxTaskRestarts != 0 {
-				p.MaxTaskRestarts = config.GlobalMaxTaskRestarts
+			if config.GlobalTaskRestartsMax != 0 {
+				p.TaskRestartsMax = config.GlobalTaskRestartsMax
 			}
 			if config.GlobalConnectorRestartPeriod != 0 {
 				p.ConnectorRestartPeriod = config.GlobalConnectorRestartPeriod
@@ -48,14 +48,14 @@ func runtimePolicyFromConnectors(connectors []connect.Connector, config *Config)
 		for k, v := range config.RestartOverrides.Connectors {
 			p := policy[k]
 
-			if v.MaxConnectorRestarts != 0 {
-				p.MaxConnectorRestarts = v.MaxConnectorRestarts
+			if v.ConnectorRestartsMax != 0 {
+				p.ConnectorRestartsMax = v.ConnectorRestartsMax
 			}
 			if v.ConnectorRestartPeriod != 0 {
 				p.ConnectorRestartPeriod = v.ConnectorRestartPeriod
 			}
-			if v.MaxTaskRestarts != 0 {
-				p.MaxTaskRestarts = v.MaxTaskRestarts
+			if v.TaskRestartsMax != 0 {
+				p.TaskRestartsMax = v.TaskRestartsMax
 			}
 			if v.TaskRestartPeriod != 0 {
 				p.TaskRestartPeriod = v.TaskRestartPeriod

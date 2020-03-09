@@ -214,7 +214,7 @@ func Test_Manage_ConnectorFailed_IsRestarted_WithPolicy(t *testing.T) {
 		RestartOverrides: &RestartPolicy{
 			Connectors: map[string]Policy{
 				"foo": Policy{
-					MaxConnectorRestarts:   10,
+					ConnectorRestartsMax:   10,
 					ConnectorRestartPeriod: time.Millisecond,
 				},
 			},
@@ -278,9 +278,9 @@ func Test_Manage_ConnectorFailed_IsRestarted_WithPolicy_RestartWorks(t *testing.
 		RestartOverrides: &RestartPolicy{
 			Connectors: map[string]Policy{
 				"foo": Policy{
-					MaxConnectorRestarts:   10,
+					ConnectorRestartsMax:   10,
 					ConnectorRestartPeriod: time.Millisecond,
-					MaxTaskRestarts:        0,
+					TaskRestartsMax:        0,
 					TaskRestartPeriod:      time.Millisecond,
 				},
 			},

@@ -13,9 +13,9 @@ type Config struct {
 
 	Version string `json:"version"`
 
-	GlobalMaxConnectorRestarts   int           `json:"global_max_connector_restarts"`
+	GlobalConnectorRestartsMax   int           `json:"global_connector_restarts_max"`
 	GlobalConnectorRestartPeriod time.Duration `json:"global_connector_restart_period"`
-	GlobalMaxTaskRestarts        int           `json:"global_max_task_restarts"`
+	GlobalTaskRestartsMax        int           `json:"global_task_restarts_max"`
 	GlobalTaskRestartPeriod      time.Duration `json:"global_task_restart_period"`
 
 	RestartOverrides *RestartPolicy `json:"restart_policy"`
@@ -32,8 +32,8 @@ type RestartPolicy struct {
 
 // Policy contains a collection of values to be managed
 type Policy struct {
-	MaxConnectorRestarts   int           `json:"max_connector_restarts"`
+	ConnectorRestartsMax   int           `json:"connector_restarts_max"`
 	ConnectorRestartPeriod time.Duration `json:"connector_restart_period"`
-	MaxTaskRestarts        int           `json:"max_task_restarts"`
+	TaskRestartsMax        int           `json:"task_restarts_max"`
 	TaskRestartPeriod      time.Duration `json:"task_restart_period"`
 }
