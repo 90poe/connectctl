@@ -44,7 +44,7 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	// creating a runtime restart policy here, overriding with the supplied one (if any)
 	// Ensuring that we have a policy defined for each connector we are manging here
 	// dramatically simplifies the management and restart code
-	policy := runtimePolicyFromConnectors(connectors, c.config.RestartPolicy)
+	policy := runtimePolicyFromConnectors(connectors, c.config)
 
 	if err = c.reconcileConnectors(connectors, policy); err != nil {
 		return errors.Wrap(err, "error synchronising connectors")
@@ -75,11 +75,11 @@ func (c *ConnectorManager) reconcileConnectors(connectors []connect.Connector, r
 func (c *ConnectorManager) autoRestart(connectors []connect.Connector, restartPolicy runtimeRestartPolicy) error {
 	for _, connector := range connectors {
 		name := connector.Name
-		err := c.retryRestartConnector(name, restartPolicy[name].MaxConnectorRestarts, restartPolicy[name].ConnectorRestartPeriod)
+		err := c.retryRestartConnector(name, restartPolicy[name].ConnectorRestartsMax, restartPolicy[name].ConnectorRestartPeriod)
 		if err != nil {
 			return err
 		}
-		err = c.retryRestartConnectorTask(name, restartPolicy[name].MaxTaskRestarts, restartPolicy[name].TaskRestartPeriod)
+		err = c.retryRestartConnectorTask(name, restartPolicy[name].TaskRestartsMax, restartPolicy[name].TaskRestartPeriod)
 		if err != nil {
 			return err
 		}
