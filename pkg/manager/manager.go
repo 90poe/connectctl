@@ -30,17 +30,35 @@ type client interface {
 type ConnectorManager struct {
 	config *Config
 	client client
+	logger Logger
 
 	readinessState readinessState
 }
 
+// Option can be supplied that override the default ConnectorManager properties
+type Option func(c *ConnectorManager)
+
+// WithLogger allows for a logger of choice to be injected
+func WithLogger(l Logger) Option {
+	return func(c *ConnectorManager) {
+		c.logger = l
+	}
+}
+
 // NewConnectorsManager creates a new ConnectorManager
-func NewConnectorsManager(client client, config *Config) (*ConnectorManager, error) {
-	return &ConnectorManager{
+func NewConnectorsManager(client client, config *Config, opts ...Option) (*ConnectorManager, error) {
+	cm := &ConnectorManager{
 		config:         config,
 		client:         client,
+		logger:         newNoopLogger(),
 		readinessState: unknownState,
-	}, nil
+	}
+
+	for _, opt := range opts {
+		opt(cm)
+	}
+
+	return cm, nil
 }
 
 type readinessState int
