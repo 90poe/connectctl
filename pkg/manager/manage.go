@@ -97,8 +97,9 @@ func (c *ConnectorManager) retryRestartConnector(name string, retrys int, retryP
 		}
 
 		if isConnectorFailed(status.Connector) {
-			err = c.restartConnector(name)
-			if err != nil {
+			c.logger.Infof("connector not running: %s", name)
+
+			if err = c.restartConnector(name); err != nil {
 				return errors.Wrapf(err, "error restarting connector: %s", name)
 			}
 		} else {
@@ -133,9 +134,9 @@ func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, re
 
 			for _, taskState := range status.Tasks {
 				if IsNotRunning(taskState) {
-					_, err := c.client.RestartConnectorTask(name, taskState.ID)
+					c.logger.Infof("task not running: %s ( %s )", taskState.ID, name)
 
-					if err != nil {
+					if _, err := c.client.RestartConnectorTask(name, taskState.ID); err != nil {
 						return err
 					}
 				} else {
@@ -191,7 +192,6 @@ func (c *ConnectorManager) reconcileConnector(connector connect.Connector) error
 	if existingConnectors != nil {
 		return c.handleExistingConnector(connector, existingConnectors)
 	}
-
 	return nil
 }
 

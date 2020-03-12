@@ -134,7 +134,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 		return errors.Wrap(err, "error creating connect client")
 	}
 
-	mngr, err := manager.NewConnectorsManager(client, config)
+	mngr, err := manager.NewConnectorsManager(client, config, manager.WithLogger(logger))
 	if err != nil {
 		return errors.Wrap(err, "error creating connectors manager")
 	}
