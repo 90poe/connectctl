@@ -106,7 +106,10 @@ if you specify --once then it will sync once and then exit.`,
 }
 
 func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) error {
-	logger := log.WithField("cluster", params.ClusterURL)
+	logger := log.WithFields(log.Fields{
+		"cluster": params.ClusterURL,
+		"version": version.Version,
+	})
 	logger.Debug("executing manage connectors command")
 
 	if err := checkConfig(params); err != nil {
