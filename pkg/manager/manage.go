@@ -120,6 +120,10 @@ func isConnectorFailed(c connect.ConnectorState) bool {
 	return c.State == "FAILED" // nolint
 }
 
+func isTaskFailed(t connect.TaskState) bool {
+	return t.State == "FAILED" //nolint
+}
+
 func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, retryPeriod time.Duration) error {
 	attempts := 0
 	for attempts <= retrys {
@@ -133,7 +137,7 @@ func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, re
 			runningTasks := 0
 
 			for _, taskState := range status.Tasks {
-				if IsNotRunning(taskState) {
+				if isTaskFailed(taskState) {
 					c.logger.Infof("task not running: %s ( %s )", taskState.ID, name)
 
 					if _, err := c.client.RestartConnectorTask(name, taskState.ID); err != nil {
