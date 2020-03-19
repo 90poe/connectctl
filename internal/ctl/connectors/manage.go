@@ -26,7 +26,7 @@ type manageDefaults struct {
 	Files                        []string      `envconfig:"FILES"`
 	Directory                    string        `envconfig:"DIRECTORY"`
 	EnvVar                       string        `envconfig:"ENV_VAR"`
-	SyncPeriod                   time.Duration `envconfig:"STNC_PERIOD"`
+	SyncPeriod                   time.Duration `envconfig:"SYNC_PERIOD"`
 	SyncErrorRetryMax            int           `envconfig:"SYNC_ERROR_RETRY_MAX"`
 	SyncErrorRetryPeriod         time.Duration `envconfig:"SYNC_ERROR_RETRY_PERIOD"`
 	AllowPurge                   bool          `envconfig:"ALLOW_PURGE"`
@@ -63,7 +63,7 @@ as a list of files or all files in a directory. The command runs continuously an
 will sync desired state with actual state based on the --sync-period flag. But
 if you specify --once then it will sync once and then exit.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			err := envconfig.Process("", params)
+			err := envconfig.Process("CONNECTCTL", params)
 
 			if err != nil {
 				return errors.Wrap(err, "error processing environmental configuration")
