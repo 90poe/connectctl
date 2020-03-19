@@ -18,21 +18,21 @@ import (
 // Files returns the aggregrated connectors loaded from a set of filepaths or an error
 func Files(files []string) func() ([]connect.Connector, error) {
 	return func() ([]connect.Connector, error) {
-		connectors := make([]connect.Connector, len(files))
+		connectors := []connect.Connector{}
 
-		for index, file := range files {
+		for _, file := range files {
 			bytes, err := ioutil.ReadFile(file)
 			if err != nil {
 				return nil, errors.Wrapf(err, "reading connector json %s", file)
 			}
 
-			c, err := newConnectorFromBytes(bytes)
+			c, err := processBytes(bytes)
 
 			if err != nil {
 				return nil, errors.Wrap(err, "unmarshalling connector from bytes")
 			}
 
-			connectors[index] = c
+			connectors = append(connectors, c...)
 		}
 
 		return connectors, nil

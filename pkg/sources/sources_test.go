@@ -74,3 +74,13 @@ func Test_EnvVarValue(t *testing.T) {
 		})
 	}
 }
+
+func Test_Directory(t *testing.T) {
+
+	path := "../../examples/"
+
+	c, err := Directory(path)()
+
+	require.Nil(t, err)
+	require.Len(t, c, 4)
+}

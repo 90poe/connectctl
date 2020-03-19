@@ -1,0 +1,22 @@
+[
+ {
+  "name": "test-connectors-1",
+  "config": {
+    "name": "test-connectors-1",
+    "connector.class": "FileStreamSource",
+    "tasks.max": "1",
+    "topic": "connect-test",
+    "file": "test_1.txt"
+  }
+ },
+ {
+  "name": "test-connectors-2",
+  "config": {
+    "name": "test-connectors-2",
+    "connector.class": "FileStreamSource",
+    "tasks.max": "1",
+    "topic": "connect-test",
+    "file": "test_2.txt"
+  }
+}
+]
