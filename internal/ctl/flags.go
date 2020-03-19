@@ -10,8 +10,6 @@ import (
 
 func AddCommonConnectorsFlags(cmd *cobra.Command, clusterURL *string) {
 	BindStringVarP(cmd.Flags(), clusterURL, "", "cluster", "c", "the URL of the connect cluster to manage (required)")
-
-	viper.Debug()
 }
 
 func AddOutputFlags(cmd *cobra.Command, output *string) {
