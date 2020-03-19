@@ -36,11 +36,12 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 
 // Sync will synchronise the desired and actual state of connectors in a cluster
 func (c *ConnectorManager) Sync(source ConnectorSource) error {
+	c.logger.Infof("loading connectors")
 	connectors, err := source()
 	if err != nil {
 		return errors.Wrap(err, "error getting connector configurations")
 	}
-
+	c.logger.Infof("connectors loaded : %d", len(connectors))
 	// creating a runtime restart policy here, overriding with the supplied one (if any)
 	// Ensuring that we have a policy defined for each connector we are manging here
 	// dramatically simplifies the management and restart code
@@ -138,7 +139,7 @@ func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, re
 
 			for _, taskState := range status.Tasks {
 				if isTaskFailed(taskState) {
-					c.logger.Infof("task not running: %s ( %s )", taskState.ID, name)
+					c.logger.Infof("task not running: %d ( %s )", taskState.ID, name)
 
 					if _, err := c.client.RestartConnectorTask(name, taskState.ID); err != nil {
 						return err
