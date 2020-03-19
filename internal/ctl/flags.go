@@ -1,33 +1,71 @@
 package ctl
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 func AddCommonConnectorsFlags(cmd *cobra.Command, clusterURL *string) {
-	cmd.PersistentFlags().StringVarP(clusterURL, "cluster", "c", "", "the URL of the connect cluster to manage (required)")
-	_ = cmd.MarkPersistentFlagRequired("cluster")
-	_ = viper.BindPFlag("cluster", cmd.PersistentFlags().Lookup("cluster"))
+	BindStringVarP(cmd.Flags(), clusterURL, "", "cluster", "c", "the URL of the connect cluster to manage (required)")
+
+	viper.Debug()
 }
 
 func AddOutputFlags(cmd *cobra.Command, output *string) {
-	cmd.PersistentFlags().StringVarP(output, "output", "o", "json", "specified the output format (valid options: json, table)")
-	_ = viper.BindPFlag("output", cmd.PersistentFlags().Lookup("output"))
+	BindStringVarP(cmd.Flags(), output, "json", "output", "o", "specify the output format (valid options: json, table)")
 }
 
 func AddDefinitionFilesFlags(cmd *cobra.Command, files *[]string, directory *string, env *string) {
-	cmd.Flags().StringArrayVarP(files, "files", "f", []string{}, "The connector definitions files (Required if --directory or --env-var not specified)")
-	_ = viper.BindPFlag("files", cmd.PersistentFlags().Lookup("files"))
-
-	cmd.Flags().StringVarP(directory, "directory", "d", "", "The directory containing the connector definitions files (Required if --file or --env-vars not specified)")
-	_ = viper.BindPFlag("directory", cmd.PersistentFlags().Lookup("directory"))
-
-	cmd.Flags().StringVarP(env, "env-var", "e", "", "An environmental variable whose value is a singular or array of connectors serialised as JSON (Required if --files or --directory not specified)")
-	_ = viper.BindPFlag("env-var", cmd.PersistentFlags().Lookup("env-var"))
+	BindStringArrayVarP(cmd.Flags(), files, []string{}, "files", "f", "the connector definitions files (Required if --directory or --env-var not specified)")
+	BindStringVarP(cmd.Flags(), directory, "", "directory", "d", "the directory containing the connector definitions files (Required if --file or --env-vars not specified)")
+	BindStringVarP(cmd.Flags(), env, "", "env-var", "e", "an environmental variable whose value is a singular or array of connectors serialised as JSON (Required if --files or --directory not specified)")
 }
 
 func AddConnectorNamesFlags(cmd *cobra.Command, names *[]string) {
-	cmd.Flags().StringArrayVarP(names, "connectors", "n", []string{}, "The connect names to restart (if not specified all connectors will be restarted)")
-	_ = viper.BindPFlag("connectors", cmd.PersistentFlags().Lookup("connectors"))
+	BindStringArrayVarP(cmd.Flags(), names, []string{}, "connectors", "n", "The connect names to restart (if not specified all connectors will be restarted)")
+}
+
+func BindDurationVarP(f *pflag.FlagSet, p *time.Duration, value time.Duration, long, short, description string) {
+	f.DurationVarP(p, long, short, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
+}
+
+func BindDurationVar(f *pflag.FlagSet, p *time.Duration, value time.Duration, long, description string) {
+	f.DurationVar(p, long, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
+}
+
+func BindBoolVar(f *pflag.FlagSet, p *bool, value bool, long, description string) {
+	f.BoolVar(p, long, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
+}
+
+func BindStringVarP(f *pflag.FlagSet, p *string, value, long, short, description string) {
+	f.StringVarP(p, long, short, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
+}
+
+func BindStringVar(f *pflag.FlagSet, p *string, value, long, description string) {
+	f.StringVar(p, long, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
+}
+
+func BindStringArrayVarP(f *pflag.FlagSet, p *[]string, value []string, long, short, description string) {
+	f.StringArrayVarP(p, long, short, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
+}
+
+func BindIntVar(f *pflag.FlagSet, p *int, value int, long, description string) {
+	f.IntVar(p, long, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
 }
