@@ -16,32 +16,33 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"gopkg.in/matryer/try.v1"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
-type manageConnectorsCmdParams struct {
-	ClusterURL                   string
-	Files                        []string
-	Directory                    string
-	EnvVar                       string
-	SyncPeriod                   time.Duration
-	SyncErrorRetryMax            int
-	SyncErrorRetryPeriod         time.Duration
-	AllowPurge                   bool
-	AutoRestart                  bool
-	RunOnce                      bool
-	EnableHealthCheck            bool
-	HealthCheckAddress           string
-	HTTPClientTimeout            time.Duration
-	GlobalConnectorRestartsMax   int
-	GlobalConnectorRestartPeriod time.Duration
-	GlobalTaskRestartsMax        int
-	GlobalTaskRestartPeriod      time.Duration
+type manageDefaults struct {
+	ClusterURL                   string        `envconfig:"CLUSTER"`
+	Files                        []string      `envconfig:"FILES"`
+	Directory                    string        `envconfig:"DIRECTORY"`
+	EnvVar                       string        `envconfig:"ENV_VAR"`
+	SyncPeriod                   time.Duration `envconfig:"STNC_PERIOD"`
+	SyncErrorRetryMax            int           `envconfig:"SYNC_ERROR_RETRY_MAX"`
+	SyncErrorRetryPeriod         time.Duration `envconfig:"SYNC_ERROR_RETRY_PERIOD"`
+	AllowPurge                   bool          `envconfig:"ALLOW_PURGE"`
+	AutoRestart                  bool          `envconfig:"AUTO_RESTART"`
+	RunOnce                      bool          `envconfig:"RUN_ONCE"`
+	EnableHealthCheck            bool          `envconfig:"HEALTHCHECK_ENABLE"`
+	HealthCheckAddress           string        `envconfig:"HEALTHCHECK_ADDRESS"`
+	HTTPClientTimeout            time.Duration `envconfig:"HTTP_CLIENT_TIMEOUT"`
+	GlobalConnectorRestartsMax   int           `envconfig:"GLOBAL_CONNECTOR_RESTARTS_MAX"`
+	GlobalConnectorRestartPeriod time.Duration `envconfig:"GLOBAL_CONNECTOR_RESTART_PERIOD"`
+	GlobalTaskRestartsMax        int           `envconfig:"GLOBAL_TASK_RESTARTS_MAX"`
+	GlobalTaskRestartPeriod      time.Duration `envconfig:"GLOBAL_TASK_RESTART_PERIOD"`
 }
 
 func manageConnectorsCmd() *cobra.Command { // nolint: funlen
-	params := &manageConnectorsCmdParams{
+	params := &manageDefaults{
 		SyncPeriod:                   5 * time.Minute,
 		SyncErrorRetryMax:            10,
 		SyncErrorRetryPeriod:         1 * time.Minute,
@@ -62,58 +63,51 @@ as a list of files or all files in a directory. The command runs continuously an
 will sync desired state with actual state based on the --sync-period flag. But
 if you specify --once then it will sync once and then exit.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			err := envconfig.Process("", params)
+
+			if err != nil {
+				return errors.Wrap(err, "error processing environmental configuration")
+			}
+
 			return doManageConnectors(cmd, params)
 		},
 	}
 
 	ctl.AddCommonConnectorsFlags(manageCmd, &params.ClusterURL)
+
 	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory, &params.EnvVar)
 
-	manageCmd.Flags().DurationVarP(&params.SyncPeriod, "sync-period", "s", params.SyncPeriod, "how often to sync with the connect cluster")
-	_ = viper.BindPFlag("sync-period", manageCmd.PersistentFlags().Lookup("sync-period"))
+	ctl.BindDurationVarP(manageCmd.Flags(), &params.SyncPeriod, params.SyncPeriod, "sync-period", "s", "how often to sync with the connect cluster")
 
-	manageCmd.Flags().BoolVarP(&params.AllowPurge, "allow-purge", "", false, "if set connectctl will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
-	_ = viper.BindPFlag("allow-purge", manageCmd.PersistentFlags().Lookup("allow-purge"))
+	ctl.BindBoolVar(manageCmd.Flags(), &params.AllowPurge, false, "allow-purge", "if set connectctl will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
+	ctl.BindBoolVar(manageCmd.Flags(), &params.AutoRestart, false, "auto-restart", "if set connectors and tasks that are failed with automatically be restarted")
+	ctl.BindBoolVar(manageCmd.Flags(), &params.RunOnce, false, "once", "if supplied sync will run once and command will exit")
 
-	manageCmd.Flags().BoolVar(&params.AutoRestart, "auto-restart", false, "if set connectors and tasks that are failed with automatically be restarted")
-	_ = viper.BindPFlag("auto-restart", manageCmd.PersistentFlags().Lookup("auto-restart"))
+	ctl.BindBoolVar(manageCmd.Flags(), &params.EnableHealthCheck, false, "healthcheck-enable", "if true a healthcheck via http will be enabled")
+	ctl.BindStringVar(manageCmd.Flags(), &params.HealthCheckAddress, params.HealthCheckAddress, "healthcheck-address", "if enabled the healthchecks ('/live' and '/ready') will be available from this address")
 
-	manageCmd.Flags().BoolVar(&params.RunOnce, "once", false, "if supplied sync will run once and command will exit")
-	_ = viper.BindPFlag("once", manageCmd.PersistentFlags().Lookup("once"))
+	ctl.BindDurationVar(manageCmd.Flags(), &params.HTTPClientTimeout, params.HTTPClientTimeout, "http-client-timeout", "HTTP client timeout")
 
-	manageCmd.Flags().BoolVar(&params.EnableHealthCheck, "healthcheck-enable", false, "if supplied a healthcheck via http will be enabled")
-	_ = viper.BindPFlag("healthcheck-enable", manageCmd.PersistentFlags().Lookup("healthcheck-enable"))
+	ctl.BindIntVar(manageCmd.Flags(), &params.GlobalConnectorRestartsMax, params.GlobalConnectorRestartsMax, "global-connector-restarts-max", "maximum times a failed connector will be restarted")
+	ctl.BindDurationVar(manageCmd.Flags(), &params.GlobalConnectorRestartPeriod, params.GlobalConnectorRestartPeriod, "global-connector-restart-period", "period of time between failed connector restart attemots")
+	ctl.BindIntVar(manageCmd.Flags(), &params.GlobalTaskRestartsMax, params.GlobalTaskRestartsMax, "global-task-restarts-max", "maximum times a failed task will be restarted")
+	ctl.BindDurationVar(manageCmd.Flags(), &params.GlobalTaskRestartPeriod, params.GlobalTaskRestartPeriod, "global-task-restart-period", "period of time between failed task restarts")
 
-	manageCmd.Flags().StringVar(&params.HealthCheckAddress, "healthcheck-address", params.HealthCheckAddress, "if enabled the healthchecks ('/live' and '/ready') will be available from this address")
-	_ = viper.BindPFlag("healthcheck-address", manageCmd.PersistentFlags().Lookup("healthcheck-address"))
-
-	manageCmd.Flags().DurationVar(&params.HTTPClientTimeout, "http-client-timeout", params.HTTPClientTimeout, "HTTP client timeout")
-	_ = viper.BindPFlag("http-client-timeout", manageCmd.PersistentFlags().Lookup("http-client-timeout"))
-
-	manageCmd.Flags().IntVar(&params.GlobalConnectorRestartsMax, "global-connector-restarts-max", params.GlobalConnectorRestartsMax, "maximum times a failed connector will be restarted")
-	_ = viper.BindPFlag("global-connector-restarts-max", manageCmd.PersistentFlags().Lookup("global-connector-restarts-max"))
-
-	manageCmd.Flags().DurationVar(&params.GlobalConnectorRestartPeriod, "global-connector-restart-period", params.GlobalConnectorRestartPeriod, "period of time between failed connector restarts")
-	_ = viper.BindPFlag("global-connector-restart-period", manageCmd.PersistentFlags().Lookup("global-connector-restart-period"))
-
-	manageCmd.Flags().IntVar(&params.GlobalTaskRestartsMax, "global-task-restarts-max", params.GlobalTaskRestartsMax, "maximum times a failed task will be restarted")
-	_ = viper.BindPFlag("global-task-restarts-max", manageCmd.PersistentFlags().Lookup("global-task-restarts-max"))
-
-	manageCmd.Flags().DurationVar(&params.GlobalTaskRestartPeriod, "global-task-restart-period", params.GlobalTaskRestartPeriod, "period of time between failed task restarts")
-	_ = viper.BindPFlag("global-task-restart-period", manageCmd.PersistentFlags().Lookup("global-task-restart-period"))
+	ctl.BindIntVar(manageCmd.Flags(), &params.SyncErrorRetryMax, params.SyncErrorRetryMax, "sync-error-retry-max", "maximum times to ignore retryable errors whilst syncing")
+	ctl.BindDurationVar(manageCmd.Flags(), &params.SyncErrorRetryPeriod, params.SyncErrorRetryPeriod, "sync-error-retry-period", "period of time between retryable errors whilst syncing")
 
 	return manageCmd
 }
 
-func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) error {
+func doManageConnectors(cmd *cobra.Command, params *manageDefaults) error {
 	logger := log.WithFields(log.Fields{
 		"cluster": params.ClusterURL,
 		"version": version.Version,
 	})
 	logger.Debug("executing manage connectors command")
 
-	if err := checkConfig(params); err != nil {
-		return errors.Wrap(err, "Error with configuration")
+	if err := checkConfigSwitches(params.Files, params.Directory, params.EnvVar); err != nil {
+		return errors.Wrap(err, "error with configuration")
 	}
 
 	config := &manager.Config{
@@ -145,7 +139,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageConnectorsCmdParams) e
 	return syncOrManage(logger, params, cmd, mngr)
 }
 
-func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cobra.Command, mngr *manager.ConnectorManager) error {
+func syncOrManage(logger *log.Entry, params *manageDefaults, cmd *cobra.Command, mngr *manager.ConnectorManager) error {
 	if params.EnableHealthCheck {
 		healthCheckHandler := healthcheck.New(mngr)
 
@@ -186,13 +180,13 @@ func syncOrManage(logger *log.Entry, params *manageConnectorsCmdParams, cmd *cob
 			if connect.IsRetryable(rootCause) {
 				lgr.WithField("attempt", attempt).Error("recoverable error when running manage")
 				time.Sleep(params.SyncErrorRetryPeriod)
-			} else {
-				lgr.Error("non-recoverable error when running manage")
-				return false, ierr
+				return true, errors.New("retry please")
 			}
+			lgr.Error("non-recoverable error when running manage")
+			return false, ierr
 		}
 		lgr.Info("attempt finished")
-		return true, errors.New("retry please")
+		return false, nil
 	})
 }
 func findSource(files []string, directory, envar string, cmd *cobra.Command) (manager.ConnectorSource, error) {
@@ -211,16 +205,16 @@ func findSource(files []string, directory, envar string, cmd *cobra.Command) (ma
 	return nil, errors.New("error finding connector definitions from parameters")
 }
 
-func checkConfig(params *manageConnectorsCmdParams) error {
+func checkConfigSwitches(files []string, directory, envar string) error {
 	paramsSet := 0
 
-	if len(params.Files) != 0 {
+	if len(files) != 0 {
 		paramsSet++
 	}
-	if params.Directory != "" {
+	if directory != "" {
 		paramsSet++
 	}
-	if params.EnvVar != "" {
+	if envar != "" {
 		paramsSet++
 	}
 
