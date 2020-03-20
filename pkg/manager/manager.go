@@ -32,7 +32,8 @@ type ConnectorManager struct {
 	client client
 	logger Logger
 
-	readinessState readinessState
+	readinessState healthcheckState
+	livenessState  healthcheckState
 }
 
 // Option can be supplied that override the default ConnectorManager properties
@@ -52,6 +53,7 @@ func NewConnectorsManager(client client, config *Config, opts ...Option) (*Conne
 		client:         client,
 		logger:         newNoopLogger(),
 		readinessState: unknownState,
+		livenessState:  unknownState,
 	}
 
 	for _, opt := range opts {
@@ -61,10 +63,10 @@ func NewConnectorsManager(client client, config *Config, opts ...Option) (*Conne
 	return cm, nil
 }
 
-type readinessState int
+type healthcheckState int
 
 const (
-	unknownState readinessState = iota
+	unknownState healthcheckState = iota
 	okState
 	errorState
 )
@@ -91,9 +93,11 @@ func (c *ConnectorManager) LivenessCheck() (string, func() error) {
 	check := func() error {
 		err := healthcheck.HTTPGetCheck(c.config.ClusterURL, time.Second*2)()
 		if err != nil {
+			c.livenessState = errorState
 			c.logger.Infof("healthcheck: liveness : %s", err.Error())
 			return err
 		}
+		c.livenessState = okState
 		c.logger.Infof("healthcheck: liveness : ok")
 		return nil
 	}
