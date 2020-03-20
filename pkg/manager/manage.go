@@ -12,22 +12,30 @@ import (
 // Manage will start the connector manager running and managing connectors
 func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}) error {
 	// mark ourselves as having an unhealthy state until we have
-	// tried to contact the kafka-connect instance
+	// successfully configured the kafka-connect instance
 	c.readinessState = errorState
 
 	syncChannel := time.NewTicker(c.config.SyncPeriod).C
 	for {
 		select {
 		case <-syncChannel:
-			err := c.Sync(source)
-			if err != nil {
-				// set back into an unhealthy state
-				c.readinessState = errorState
-				return errors.Wrap(err, "error synchronising connectors for source")
+
+			// we only want to try Syncing if we can contact the kafka-connect instance.
+			// Using the LivenessCheck as a proxy for calculating the connection
+			if c.livenessState == okState {
+				err := c.Sync(source)
+				if err != nil {
+					// set back into an unhealthy state
+					c.readinessState = errorState
+					return errors.Wrap(err, "error synchronising connectors for source")
+				}
+				// mark ourselves as being in an ok state as we have
+				// started syncing without any error
+				c.readinessState = okState
+			} else {
+				c.logger.Infof("skipping sync as livenessState == %v", c.livenessState)
 			}
-			// mark ourselves as being in an ok state as we have
-			// started syncing without any error
-			c.readinessState = okState
+
 		case <-stopCH:
 			return nil
 		}
