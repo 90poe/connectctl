@@ -26,6 +26,7 @@ type manageDefaults struct {
 	Files                        []string      `envconfig:"FILES"`
 	Directory                    string        `envconfig:"DIRECTORY"`
 	EnvVar                       string        `envconfig:"ENV_VAR"`
+	InitialWaitPeriod            time.Duration `envconfig:"INITIAL_WAIT_PERIOD"`
 	SyncPeriod                   time.Duration `envconfig:"SYNC_PERIOD"`
 	SyncErrorRetryMax            int           `envconfig:"SYNC_ERROR_RETRY_MAX"`
 	SyncErrorRetryPeriod         time.Duration `envconfig:"SYNC_ERROR_RETRY_PERIOD"`
@@ -43,6 +44,7 @@ type manageDefaults struct {
 
 func manageConnectorsCmd() *cobra.Command { // nolint: funlen
 	params := &manageDefaults{
+		InitialWaitPeriod:            3 * time.Minute,
 		SyncPeriod:                   5 * time.Minute,
 		SyncErrorRetryMax:            10,
 		SyncErrorRetryPeriod:         1 * time.Minute,
@@ -78,6 +80,7 @@ if you specify --once then it will sync once and then exit.`,
 	ctl.AddDefinitionFilesFlags(manageCmd, &params.Files, &params.Directory, &params.EnvVar)
 
 	ctl.BindDurationVarP(manageCmd.Flags(), &params.SyncPeriod, params.SyncPeriod, "sync-period", "s", "how often to sync with the connect cluster")
+	ctl.BindDurationVar(manageCmd.Flags(), &params.InitialWaitPeriod, params.InitialWaitPeriod, "wait-period", "time period to wait before starting the first sync")
 
 	ctl.BindBoolVar(manageCmd.Flags(), &params.AllowPurge, false, "allow-purge", "if set connectctl will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
 	ctl.BindBoolVar(manageCmd.Flags(), &params.AutoRestart, false, "auto-restart", "if set connectors and tasks that are failed with automatically be restarted")
@@ -112,6 +115,7 @@ func doManageConnectors(cmd *cobra.Command, params *manageDefaults) error {
 
 	config := &manager.Config{
 		ClusterURL:                   params.ClusterURL,
+		InitialWaitPeriod:            params.InitialWaitPeriod,
 		SyncPeriod:                   params.SyncPeriod,
 		AllowPurge:                   params.AllowPurge,
 		AutoRestart:                  params.AutoRestart,

@@ -15,31 +15,40 @@ func (c *ConnectorManager) Manage(source ConnectorSource, stopCH <-chan struct{}
 	// successfully configured the kafka-connect instance
 	c.readinessState = errorState
 
-	syncChannel := time.NewTicker(c.config.SyncPeriod).C
+	syncChannel := time.NewTicker(c.config.InitialWaitPeriod).C
 	for {
 		select {
 		case <-syncChannel:
 
-			// we only want to try Syncing if we can contact the kafka-connect instance.
-			// Using the LivenessCheck as a proxy for calculating the connection
-			if c.livenessState == okState {
-				err := c.Sync(source)
-				if err != nil {
-					// set back into an unhealthy state
-					c.readinessState = errorState
-					return errors.Wrap(err, "error synchronising connectors for source")
-				}
-				// mark ourselves as being in an ok state as we have
-				// started syncing without any error
-				c.readinessState = okState
-			} else {
-				c.logger.Infof("skipping sync as livenessState == %v", c.livenessState)
+			err := c.trySync(source)
+			if err != nil {
+				return errors.Wrap(err, "error synchronising connectors for source")
 			}
+			syncChannel = time.NewTicker(c.config.SyncPeriod).C
 
 		case <-stopCH:
 			return nil
 		}
 	}
+}
+
+func (c *ConnectorManager) trySync(source ConnectorSource) error {
+	// we only want to try Syncing if we can contact the kafka-connect instance.
+	// Using the LivenessCheck as a proxy for calculating the connection
+	if c.livenessState == okState {
+		err := c.Sync(source)
+		if err != nil {
+			// set back into an unhealthy state
+			c.readinessState = errorState
+			return err
+		}
+		// mark ourselves as being in an ok state as we have
+		// started syncing without any error
+		c.readinessState = okState
+		return nil
+	}
+	c.logger.Infof("skipping sync as livenessState == %v", c.livenessState)
+	return nil
 }
 
 // Sync will synchronise the desired and actual state of connectors in a cluster
