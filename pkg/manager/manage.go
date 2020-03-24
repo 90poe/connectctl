@@ -56,7 +56,7 @@ func (c *ConnectorManager) Sync(source ConnectorSource) error {
 	c.logger.Infof("loading connectors")
 	connectors, err := source()
 	if err != nil {
-		return errors.Wrap(err, "error getting connector configurations")
+		return errors.Wrap(err, "error getting connectors configuration")
 	}
 	c.logger.Infof("connectors loaded : %d", len(connectors))
 	// creating a runtime restart policy here, overriding with the supplied one (if any)
