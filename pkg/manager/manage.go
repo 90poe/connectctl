@@ -156,9 +156,14 @@ func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, re
 
 			for _, taskState := range status.Tasks {
 				if isTaskFailed(taskState) {
-					c.logger.Infof("task not running: %d ( %s )", taskState.ID, name)
+					if taskState.Trace != "" {
+						c.logger.Infof("task not running: %s ( %d ) : %s", name, taskState.ID, taskState.Trace)
+					} else {
+						c.logger.Infof("task not running: %s ( %d )", name, taskState.ID)
+					}
 
 					if _, err := c.client.RestartConnectorTask(name, taskState.ID); err != nil {
+						c.logger.Infof("restarting task failed: %s", err.Error())
 						return err
 					}
 				} else {
