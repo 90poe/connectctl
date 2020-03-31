@@ -58,6 +58,9 @@ jobs:
       - image:  circleci/golang:1.14.1
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "b2:1b:aa:03:24:de:cd:aa:aa:0d:f6:ad:be:c9:85:19"
       - run:
           name: Pushing git tag
           command: |
