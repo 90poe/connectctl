@@ -55,27 +55,30 @@ jobs:
           command: gh-pages --dotfiles --message "chore - docs published to GitHub Pages" --dist docs/_build/html
   add-tag:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image:  circleci/golang:1.13.1
     steps:
       - checkout
       - run:
           name: Pushing git tag
           command: |
-                LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+                git config --global user.name "90POE"
+                git config --global user.email "bot@90poe.io"
+
+                go get -u github.com/magiconair/bump
+
+                LATEST_TAG=$(bump cur)
                 echo "Latest tag : ${LATEST_TAG}"
 
-                NEW_TAG=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+                NEW_TAG=$(bump next)
                 echo "Newest tag : ${NEW_TAG}"
 
                 if [[ "v${LATEST_TAG}" == "v${NEW_TAG}" ]]
                 then
                   echo "Tag ${NEW_TAG} already exists."
                 else
-                  git config --global user.name "90POE"
-                  git config --global user.email "bot@90poe.io"
-                  git tag -a ${NEW_TAG} -m "Updated master tag with tag version ${NEW_TAG}"
-                  git push -u origin ${NEW_TAG}
-                  echo "Updated the master tag with tag version ${NEW_TAG}."
+                 bump tag
+                 git push -u origin ${NEW_TAG}
+                 echo "Updated the master tag with tag version ${NEW_TAG}."
                 fi
 workflows:
   version: 2
