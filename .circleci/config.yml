@@ -1,10 +1,5 @@
 version: 2.1
 
-orbs:
-  # if master branch create a tag and push
-  # https://circleci.com/orbs/registry/orb/armis-paris/auto-tag
-  auto-tag: armis-paris/auto-tag@0.0.3
-
 jobs:
   buildtest:
     docker:
