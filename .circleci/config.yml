@@ -87,6 +87,8 @@ workflows:
             - buildtest
             - docs-build
           filters:
+            tags:
+              ignore: /.*/
             branches:
               only:
                 - master
