@@ -91,7 +91,7 @@ workflows:
               ignore: /.*/
       - add-tag:
           filters:
-            tags:
+            branches:
               only:
                 - master
   release:
