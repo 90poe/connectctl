@@ -93,6 +93,9 @@ workflows:
             tags:
               ignore: /.*/
       - add-tag:
+          requires:
+            - buildtest
+            - docs-build
           filters:
             branches:
               only:
