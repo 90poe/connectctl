@@ -66,8 +66,7 @@ jobs:
 
                 go get -u github.com/sv-tools/bumptag
 
-                bumptag -p
-                git push origin --tags
+                bumptag -p -a
 workflows:
   version: 2
   any-commit:
