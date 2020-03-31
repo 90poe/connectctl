@@ -1,4 +1,5 @@
-version: 2
+version: 2.1
+
 jobs:
   buildtest:
     docker:
@@ -52,6 +53,30 @@ jobs:
       - run:
           name: Deploy docs to gh-pages branch
           command: gh-pages --dotfiles --message "chore - docs published to GitHub Pages" --dist docs/_build/html
+  add-tag:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    steps:
+      - checkout
+      - run:
+          name: Pushing git tag
+          command: |
+                LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+                echo "Latest tag : ${LATEST_TAG}"
+
+                NEW_TAG=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+                echo "Newest tag : ${NEW_TAG}"
+
+                if [[ "v${LATEST_TAG}" == "v${NEW_TAG}" ]]
+                then
+                  echo "Tag ${NEW_TAG} already exists."
+                else
+                  git config --global user.name "90POE"
+                  git config --global user.email "bot@90poe.io"
+                  git tag -a ${NEW_TAG} -m "Updated master tag with tag version ${NEW_TAG}"
+                  git push -u origin ${NEW_TAG}
+                  echo "Updated the master tag with tag version ${NEW_TAG}."
+                fi
 workflows:
   version: 2
   any-commit:
@@ -64,6 +89,11 @@ workflows:
           filters:
             tags:
               ignore: /.*/
+      - add-tag:
+          filters:
+            branches:
+              only:
+                - master
   release:
     jobs:
       - release:
