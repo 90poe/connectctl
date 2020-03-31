@@ -64,22 +64,9 @@ jobs:
                 git config --global user.name "90POE"
                 git config --global user.email "bot@90poe.io"
 
-                go get -u github.com/magiconair/bump
+                go get -u github.com/sv-tools/bumptag
 
-                LATEST_TAG=$(bump cur)
-                echo "Latest tag : ${LATEST_TAG}"
-
-                NEW_TAG=$(bump next)
-                echo "Newest tag : ${NEW_TAG}"
-
-                if [[ "v${LATEST_TAG}" == "v${NEW_TAG}" ]]
-                then
-                  echo "Tag ${NEW_TAG} already exists."
-                else
-                 bump tag
-                 git push -u origin ${NEW_TAG}
-                 echo "Updated the master tag with tag version ${NEW_TAG}."
-                fi
+                bumptag -p -a
 workflows:
   version: 2
   any-commit:

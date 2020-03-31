@@ -20,7 +20,8 @@ require (
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.5.1
+	github.com/sv-tools/bumptag v1.5.1 // indirect
 	github.com/urfave/cli v1.22.3 // indirect
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
 	golang.org/x/text v0.3.2 // indirect
