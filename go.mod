@@ -10,6 +10,7 @@ require (
 	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/magiconair/bump v1.2.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
@@ -20,6 +21,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.3.0
+	github.com/urfave/cli v1.22.3 // indirect
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
 	golang.org/x/text v0.3.2 // indirect
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
