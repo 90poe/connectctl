@@ -115,9 +115,10 @@ func (c *ConnectorManager) retryRestartConnector(name string, retrys int, retryP
 		}
 
 		if isConnectorFailed(status.Connector) {
-			c.logger.Infof("connector not running: %s", name)
+			c.logger.Warnf("connector not running: %s", name)
 
 			if err = c.restartConnector(name); err != nil {
+				c.logger.Warnf("restarting connector failed: %s", err.Error())
 				return errors.Wrapf(err, "error restarting connector: %s", name)
 			}
 		} else {
@@ -127,6 +128,7 @@ func (c *ConnectorManager) retryRestartConnector(name string, retrys int, retryP
 		attempts++
 		time.Sleep(retryPeriod)
 	}
+	c.logger.Warnf("error restarting connector: %s, retrys: %d", name, retrys)
 	return fmt.Errorf("error restarting connector: %s, retrys: %d", name, retrys)
 }
 
@@ -157,13 +159,13 @@ func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, re
 			for _, taskState := range status.Tasks {
 				if isTaskFailed(taskState) {
 					if taskState.Trace != "" {
-						c.logger.Infof("task not running: %s ( %d ) : %s", name, taskState.ID, taskState.Trace)
+						c.logger.Warnf("task not running: %s ( %d ) : %s", name, taskState.ID, taskState.Trace)
 					} else {
-						c.logger.Infof("task not running: %s ( %d )", name, taskState.ID)
+						c.logger.Warnf("task not running: %s ( %d )", name, taskState.ID)
 					}
 
 					if _, err := c.client.RestartConnectorTask(name, taskState.ID); err != nil {
-						c.logger.Infof("restarting task failed: %s", err.Error())
+						c.logger.Warnf("restarting task failed: %s", err.Error())
 						return err
 					}
 				} else {
@@ -180,6 +182,7 @@ func (c *ConnectorManager) retryRestartConnectorTask(name string, retrys int, re
 		attempts++
 		time.Sleep(retryPeriod)
 	}
+	c.logger.Warnf("error restarting connector task: %s, retrys: %d", name, retrys)
 	return fmt.Errorf("error restarting connector task: %s, retrys: %d", name, retrys)
 }
 
