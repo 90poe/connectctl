@@ -1,4 +1,10 @@
-version: 2
+version: 2.1
+
+orbs:
+  # if master branch create a tag and push
+  # https://circleci.com/orbs/registry/orb/armis-paris/auto-tag
+  auto-tag: armis-paris/auto-tag@0.0.3
+
 jobs:
   buildtest:
     docker:
@@ -52,6 +58,7 @@ jobs:
       - run:
           name: Deploy docs to gh-pages branch
           command: gh-pages --dotfiles --message "chore - docs published to GitHub Pages" --dist docs/_build/html
+
 workflows:
   version: 2
   any-commit:
