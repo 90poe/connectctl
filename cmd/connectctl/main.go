@@ -3,6 +3,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/90poe/connectctl/internal/ctl/tasks"
+	"github.com/90poe/connectctl/pkg/client/connect"
 	"os"
 	"strings"
 
@@ -59,6 +61,12 @@ func main() {
 	rootCmd.AddCommand(connectors.Command())
 	rootCmd.AddCommand(plugins.Command())
 	rootCmd.AddCommand(version.Command())
+
+	rootCmd.AddCommand(tasks.Command(&tasks.GenericOptions{
+		CreateClient: func(clusterURL string) (client tasks.Client, err error) {
+			return connect.NewClient(clusterURL)
+		},
+	}))
 
 	cobra.OnInitialize(initConfig)
 
