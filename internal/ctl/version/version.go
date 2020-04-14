@@ -1,9 +1,9 @@
 package version
 
 import (
+	"fmt"
 	"runtime"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/90poe/connectctl/internal/version"
@@ -22,10 +22,10 @@ func Command() *cobra.Command {
 }
 
 func doVersion(cmd *cobra.Command, args []string) {
-	log.Infof("Version: %s\n", version.Version)
-	log.Infof("Commit: %s\n", version.GitHash)
-	log.Infof("Build Date: %s\n", version.BuildDate)
-	log.Infof("GO Version: %s\n", runtime.Version())
-	log.Infof("GOOS: %s\n", runtime.GOOS)
-	log.Infof("GOARCH: %s\n", runtime.GOARCH)
+	fmt.Printf("Version: %s\n", version.Version)
+	fmt.Printf("Commit: %s\n", version.GitHash)
+	fmt.Printf("Build Date: %s\n", version.BuildDate)
+	fmt.Printf("GO Version: %s\n", runtime.Version())
+	fmt.Printf("GOOS: %s\n", runtime.GOOS)
+	fmt.Printf("GOARCH: %s\n", runtime.GOARCH)
 }

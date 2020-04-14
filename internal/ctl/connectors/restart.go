@@ -9,7 +9,6 @@ import (
 	"github.com/90poe/connectctl/pkg/manager"
 	"github.com/pkg/errors"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,14 +50,11 @@ func restartConnectorsCmd() *cobra.Command {
 }
 
 func doRestartConnectors(_ *cobra.Command, params *restartConnectorsCmdParams) error {
-	clusterLogger := log.WithField("cluster", params.ClusterURL)
-	clusterLogger.Infof("restarting connectors: %s", params.Connectors)
 
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
 	}
-	clusterLogger.WithField("config", config).Trace("restart connectors configuration")
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
@@ -72,11 +68,10 @@ func doRestartConnectors(_ *cobra.Command, params *restartConnectorsCmdParams) e
 		return errors.Wrap(err, "error creating connectors manager")
 	}
 
-	err = mngr.Restart(params.Connectors, params.RestartTasks, params.ForceRestartTasks, params.TaskIDs)
-	if err != nil {
+	if err = mngr.Restart(params.Connectors, params.RestartTasks, params.ForceRestartTasks, params.TaskIDs); err != nil {
 		return errors.Wrap(err, "error restarting connectors")
 	}
 
-	clusterLogger.Info("connectors restarted successfully")
+	fmt.Printf("connectors restarted successfully")
 	return nil
 }

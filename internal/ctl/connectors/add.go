@@ -9,7 +9,6 @@ import (
 	"github.com/90poe/connectctl/pkg/manager"
 	"github.com/pkg/errors"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -39,14 +38,11 @@ func addConnectorCmd() *cobra.Command {
 }
 
 func doAddConnectors(cmd *cobra.Command, params *addConnectorsCmdParams) error {
-	clusterLogger := log.WithField("cluster", params.ClusterURL)
-	clusterLogger.Infof("adding connectors")
 
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
 	}
-	clusterLogger.WithField("config", config).Trace("add connectors configuration")
 
 	source, err := findSource(params.Files, params.Directory, params.EnvVar, cmd)
 
@@ -70,10 +66,9 @@ func doAddConnectors(cmd *cobra.Command, params *addConnectorsCmdParams) error {
 	if err != nil {
 		return errors.Wrap(err, "error creating connectors manager")
 	}
-	err = mngr.Add(connectors)
-	if err != nil {
+	if err = mngr.Add(connectors); err != nil {
 		return errors.Wrap(err, "error creating connectors")
 	}
-	clusterLogger.Infof("added connectors")
+	fmt.Println("added connectors")
 	return nil
 }
