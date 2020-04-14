@@ -39,7 +39,6 @@ func listConnectorsCmd() *cobra.Command {
 }
 
 func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) error {
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,

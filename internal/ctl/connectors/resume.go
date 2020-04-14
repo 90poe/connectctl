@@ -36,7 +36,6 @@ func resumeConnectorsCmd() *cobra.Command {
 }
 
 func doResumeConnectors(_ *cobra.Command, params *resumeConnectorsCmdParams) error {
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,

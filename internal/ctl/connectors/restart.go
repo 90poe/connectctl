@@ -50,7 +50,6 @@ func restartConnectorsCmd() *cobra.Command {
 }
 
 func doRestartConnectors(_ *cobra.Command, params *restartConnectorsCmdParams) error {
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,

@@ -39,7 +39,6 @@ func listPluginsCmd() *cobra.Command {
 }
 
 func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) error {
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,

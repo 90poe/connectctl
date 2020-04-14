@@ -36,7 +36,6 @@ func removeConnectorCmd() *cobra.Command {
 }
 
 func doRemoveConnectors(_ *cobra.Command, params *removeConnectorsCmdParams) error {
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,

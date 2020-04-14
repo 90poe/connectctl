@@ -36,7 +36,6 @@ func pauseConnectorsCmd() *cobra.Command {
 }
 
 func doPauseConnectors(_ *cobra.Command, params *pauseConnectorsCmdParams) error {
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
