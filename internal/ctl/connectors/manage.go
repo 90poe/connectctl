@@ -8,6 +8,7 @@ import (
 
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/healthcheck"
+	"github.com/90poe/connectctl/internal/logging"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
@@ -40,6 +41,9 @@ type manageDefaults struct {
 	GlobalConnectorRestartPeriod time.Duration `envconfig:"GLOBAL_CONNECTOR_RESTART_PERIOD"`
 	GlobalTaskRestartsMax        int           `envconfig:"GLOBAL_TASK_RESTARTS_MAX"`
 	GlobalTaskRestartPeriod      time.Duration `envconfig:"GLOBAL_TASK_RESTART_PERIOD"`
+	LogLevel                     string        `envconfig:"LOG_LEVEL"`
+	LogFile                      string        `envconfig:"LOG_FILE"`
+	LogFormat                    string        `envconfig:"LOG_FORMAT"`
 }
 
 func manageConnectorsCmd() *cobra.Command { // nolint: funlen
@@ -54,6 +58,8 @@ func manageConnectorsCmd() *cobra.Command { // nolint: funlen
 		GlobalConnectorRestartPeriod: 10 * time.Second,
 		GlobalTaskRestartsMax:        5,
 		GlobalTaskRestartPeriod:      10 * time.Second,
+		LogLevel:                     "INFO",
+		LogFormat:                    "TEXT",
 	}
 
 	manageCmd := &cobra.Command{
@@ -82,7 +88,7 @@ if you specify --once then it will sync once and then exit.`,
 	ctl.BindDurationVarP(manageCmd.Flags(), &params.SyncPeriod, params.SyncPeriod, "sync-period", "s", "how often to sync with the connect cluster")
 	ctl.BindDurationVar(manageCmd.Flags(), &params.InitialWaitPeriod, params.InitialWaitPeriod, "wait-period", "time period to wait before starting the first sync")
 
-	ctl.BindBoolVar(manageCmd.Flags(), &params.AllowPurge, false, "allow-purge", "if set connectctl will manage all connectors in a cluster. If connectors exist in the cluster that aren't specified in --files then the connectors will be deleted")
+	ctl.BindBoolVar(manageCmd.Flags(), &params.AllowPurge, false, "allow-purge", "if set connectctl will manage all connectors in a cluster. If connectors exist in the cluster that aren' t specified in --files then the connectors will be deleted")
 	ctl.BindBoolVar(manageCmd.Flags(), &params.AutoRestart, false, "auto-restart", "if set connectors and tasks that are failed with automatically be restarted")
 	ctl.BindBoolVar(manageCmd.Flags(), &params.RunOnce, false, "once", "if supplied sync will run once and command will exit")
 
@@ -99,10 +105,18 @@ if you specify --once then it will sync once and then exit.`,
 	ctl.BindIntVar(manageCmd.Flags(), &params.SyncErrorRetryMax, params.SyncErrorRetryMax, "sync-error-retry-max", "maximum times to ignore retryable errors whilst syncing")
 	ctl.BindDurationVar(manageCmd.Flags(), &params.SyncErrorRetryPeriod, params.SyncErrorRetryPeriod, "sync-error-retry-period", "period of time between retryable errors whilst syncing")
 
+	ctl.BindStringVarP(manageCmd.Flags(), &params.LogLevel, params.LogLevel, "loglevel", "l", "Log level for the CLI (Optional)")
+	ctl.BindStringVar(manageCmd.Flags(), &params.LogFile, params.LogFile, "logfile", "A file to use for log output (Optional)")
+	ctl.BindStringVar(manageCmd.Flags(), &params.LogFormat, params.LogFormat, "logformat", "Format for log output (Optional)")
+
 	return manageCmd
 }
 
 func doManageConnectors(cmd *cobra.Command, params *manageDefaults) error {
+	if err := logging.Configure(params.LogLevel, params.LogFile, params.LogFormat); err != nil {
+		return errors.Wrap(err, "error configuring logging")
+	}
+
 	logger := log.WithFields(log.Fields{
 		"cluster": params.ClusterURL,
 		"version": version.Version,
