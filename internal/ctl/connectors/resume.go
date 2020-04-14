@@ -9,7 +9,6 @@ import (
 	"github.com/90poe/connectctl/pkg/manager"
 	"github.com/pkg/errors"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -37,14 +36,10 @@ func resumeConnectorsCmd() *cobra.Command {
 }
 
 func doResumeConnectors(_ *cobra.Command, params *resumeConnectorsCmdParams) error {
-	clusterLogger := log.WithField("cluster", params.ClusterURL)
-	clusterLogger.Infof("resuming onnectots: %s", params.Connectors)
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
 	}
-	clusterLogger.WithField("config", config).Trace("resume connectors configuration")
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
@@ -58,11 +53,10 @@ func doResumeConnectors(_ *cobra.Command, params *resumeConnectorsCmdParams) err
 		return errors.Wrap(err, "error creating connectors manager")
 	}
 
-	err = mngr.Resume(params.Connectors)
-	if err != nil {
+	if err = mngr.Resume(params.Connectors); err != nil {
 		return errors.Wrap(err, "error resuming connectors")
 	}
 
-	clusterLogger.Info("connectors resumed successfully")
+	fmt.Println("connectors resumed successfully")
 	return nil
 }

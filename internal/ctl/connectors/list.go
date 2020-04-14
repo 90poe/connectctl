@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/jedib0t/go-pretty/table"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -40,14 +39,10 @@ func listConnectorsCmd() *cobra.Command {
 }
 
 func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) error {
-	clusterLogger := log.WithField("cluster", params.ClusterURL)
-	clusterLogger.Debug("listing connectors")
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
 	}
-	clusterLogger.WithField("config", config).Trace("list connectors configuration")
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
@@ -68,20 +63,19 @@ func doListConnectors(_ *cobra.Command, params *listConnectorsCmdParams) error {
 
 	switch params.Output {
 	case "json":
-		err := printConnectorsAsJSON(connectors, clusterLogger)
+		err := printConnectorsAsJSON(connectors)
 		if err != nil {
 			return errors.Wrap(err, "error printing connectors as JSON")
 		}
 	case "table":
-		printConnectorsAsTable(connectors, clusterLogger)
+		printConnectorsAsTable(connectors)
 	default:
-		clusterLogger.Errorf("invalid output format specified: %s", params.Output)
+		return fmt.Errorf("invalid output format specified: %s", params.Output)
 	}
 	return nil
 }
 
-func printConnectorsAsJSON(connectors []*manager.ConnectorWithState, logger *log.Entry) error {
-	logger.Debug("printing connectors as JSON")
+func printConnectorsAsJSON(connectors []*manager.ConnectorWithState) error {
 	b, err := json.MarshalIndent(connectors, "", "  ")
 	if err != nil {
 		return err
@@ -91,9 +85,7 @@ func printConnectorsAsJSON(connectors []*manager.ConnectorWithState, logger *log
 	return nil
 }
 
-func printConnectorsAsTable(connectors []*manager.ConnectorWithState, logger *log.Entry) {
-	logger.Debug("printing connectors as table")
-
+func printConnectorsAsTable(connectors []*manager.ConnectorWithState) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Name", "State", "WorkerId", "Tasks", "Config"})

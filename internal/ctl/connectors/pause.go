@@ -9,7 +9,6 @@ import (
 	"github.com/90poe/connectctl/pkg/manager"
 	"github.com/pkg/errors"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -37,14 +36,10 @@ func pauseConnectorsCmd() *cobra.Command {
 }
 
 func doPauseConnectors(_ *cobra.Command, params *pauseConnectorsCmdParams) error {
-	clusterLogger := log.WithField("cluster", params.ClusterURL)
-	clusterLogger.Infof("pausing connectors: %s", params.Connectors)
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
 	}
-	clusterLogger.WithField("config", config).Trace("pause connectors configuration")
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
@@ -58,11 +53,10 @@ func doPauseConnectors(_ *cobra.Command, params *pauseConnectorsCmdParams) error
 		return errors.Wrap(err, "error creating connectors manager")
 	}
 
-	err = mngr.Pause(params.Connectors)
-	if err != nil {
+	if err = mngr.Pause(params.Connectors); err != nil {
 		return errors.Wrap(err, "error pausing connectors")
 	}
 
-	clusterLogger.Info("connectors paused successfully")
+	fmt.Println("connectors paused successfully")
 	return nil
 }

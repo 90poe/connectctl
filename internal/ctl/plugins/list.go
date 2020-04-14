@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/jedib0t/go-pretty/table"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -40,14 +39,10 @@ func listPluginsCmd() *cobra.Command {
 }
 
 func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) error {
-	clusterLogger := log.WithField("cluster", params.ClusterURL)
-	clusterLogger.Debug("listing connector plugins")
-
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
 	}
-	clusterLogger.WithField("config", config).Trace("list connector plugins configuration")
 
 	userAgent := fmt.Sprintf("90poe.io/connectctl/%s", version.Version)
 
@@ -68,20 +63,19 @@ func doListPlugins(_ *cobra.Command, params *listPluginsCmdParams) error {
 
 	switch params.Output {
 	case "json":
-		err = printPluginsAsJSON(plugins, clusterLogger)
+		err = printPluginsAsJSON(plugins)
 		if err != nil {
 			return errors.Wrap(err, "error printing plugins as JSON")
 		}
 	case "table":
-		printPluginsAsTable(plugins, clusterLogger)
+		printPluginsAsTable(plugins)
 	default:
-		clusterLogger.Errorf("invalid output format specified: %s", params.Output)
+		return fmt.Errorf("invalid output format specified: %s", params.Output)
 	}
 	return nil
 }
 
-func printPluginsAsJSON(plugins []*connect.Plugin, logger *log.Entry) error {
-	logger.Debug("printing plugins as JSON")
+func printPluginsAsJSON(plugins []*connect.Plugin) error {
 	b, err := json.MarshalIndent(plugins, "", "  ")
 	if err != nil {
 		return err
@@ -91,9 +85,7 @@ func printPluginsAsJSON(plugins []*connect.Plugin, logger *log.Entry) error {
 	return nil
 }
 
-func printPluginsAsTable(plugins []*connect.Plugin, logger *log.Entry) {
-	logger.Debug("printing plugins as table")
-
+func printPluginsAsTable(plugins []*connect.Plugin) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Class", "Type", "Version"})
