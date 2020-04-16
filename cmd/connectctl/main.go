@@ -48,7 +48,7 @@ func main() {
 	cobra.OnInitialize(initConfig)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("%+v", err)
+		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
 }
