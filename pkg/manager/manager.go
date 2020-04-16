@@ -13,6 +13,7 @@ import (
 type ConnectorSource func() ([]connect.Connector, error)
 
 type client interface {
+	GetClusterInfo() (*connect.ClusterInfo, *http.Response, error)
 	CreateConnector(conn connect.Connector) (*http.Response, error)
 	ListConnectors() ([]string, *http.Response, error)
 	GetConnector(name string) (*connect.Connector, *http.Response, error)
