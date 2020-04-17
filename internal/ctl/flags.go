@@ -1,6 +1,7 @@
 package ctl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -8,8 +9,18 @@ import (
 	"github.com/spf13/viper"
 )
 
+func AddClusterFlag(cmd *cobra.Command, required bool, clusterURL *string) {
+	description := "the URL of the connect cluster to manage"
+
+	if required {
+		description = requiredDescription(&description)
+	}
+
+	BindStringVarP(cmd.Flags(), clusterURL, "", "cluster", "c", description)
+}
+
 func AddCommonConnectorsFlags(cmd *cobra.Command, clusterURL *string) {
-	BindStringVarP(cmd.Flags(), clusterURL, "", "cluster", "c", "the URL of the connect cluster to manage (required)")
+	AddClusterFlag(cmd, true, clusterURL)
 }
 
 func AddOutputFlags(cmd *cobra.Command, output *string) {
@@ -66,4 +77,8 @@ func BindIntVar(f *pflag.FlagSet, p *int, value int, long, description string) {
 	f.IntVar(p, long, value, description)
 	_ = viper.BindPFlag(long, f.Lookup(long))
 	viper.SetDefault(long, value)
+}
+
+func requiredDescription(desc *string) string {
+	return fmt.Sprintf("%s (required)", *desc)
 }

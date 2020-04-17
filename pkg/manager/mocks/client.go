@@ -35,6 +35,20 @@ type FakeClient struct {
 		result1 *http.Response
 		result2 error
 	}
+	GetClusterInfoStub        func() (*connect.ClusterInfo, *http.Response, error)
+	getClusterInfoMutex       sync.RWMutex
+	getClusterInfoArgsForCall []struct {
+	}
+	getClusterInfoReturns struct {
+		result1 *connect.ClusterInfo
+		result2 *http.Response
+		result3 error
+	}
+	getClusterInfoReturnsOnCall map[int]struct {
+		result1 *connect.ClusterInfo
+		result2 *http.Response
+		result3 error
+	}
 	GetConnectorStub        func(string) (*connect.Connector, *http.Response, error)
 	getConnectorMutex       sync.RWMutex
 	getConnectorArgsForCall []struct {
@@ -290,6 +304,64 @@ func (fake *FakeClient) DeleteConnectorReturnsOnCall(i int, result1 *http.Respon
 		result1 *http.Response
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeClient) GetClusterInfo() (*connect.ClusterInfo, *http.Response, error) {
+	fake.getClusterInfoMutex.Lock()
+	ret, specificReturn := fake.getClusterInfoReturnsOnCall[len(fake.getClusterInfoArgsForCall)]
+	fake.getClusterInfoArgsForCall = append(fake.getClusterInfoArgsForCall, struct {
+	}{})
+	fake.recordInvocation("GetClusterInfo", []interface{}{})
+	fake.getClusterInfoMutex.Unlock()
+	if fake.GetClusterInfoStub != nil {
+		return fake.GetClusterInfoStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	fakeReturns := fake.getClusterInfoReturns
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeClient) GetClusterInfoCallCount() int {
+	fake.getClusterInfoMutex.RLock()
+	defer fake.getClusterInfoMutex.RUnlock()
+	return len(fake.getClusterInfoArgsForCall)
+}
+
+func (fake *FakeClient) GetClusterInfoCalls(stub func() (*connect.ClusterInfo, *http.Response, error)) {
+	fake.getClusterInfoMutex.Lock()
+	defer fake.getClusterInfoMutex.Unlock()
+	fake.GetClusterInfoStub = stub
+}
+
+func (fake *FakeClient) GetClusterInfoReturns(result1 *connect.ClusterInfo, result2 *http.Response, result3 error) {
+	fake.getClusterInfoMutex.Lock()
+	defer fake.getClusterInfoMutex.Unlock()
+	fake.GetClusterInfoStub = nil
+	fake.getClusterInfoReturns = struct {
+		result1 *connect.ClusterInfo
+		result2 *http.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) GetClusterInfoReturnsOnCall(i int, result1 *connect.ClusterInfo, result2 *http.Response, result3 error) {
+	fake.getClusterInfoMutex.Lock()
+	defer fake.getClusterInfoMutex.Unlock()
+	fake.GetClusterInfoStub = nil
+	if fake.getClusterInfoReturnsOnCall == nil {
+		fake.getClusterInfoReturnsOnCall = make(map[int]struct {
+			result1 *connect.ClusterInfo
+			result2 *http.Response
+			result3 error
+		})
+	}
+	fake.getClusterInfoReturnsOnCall[i] = struct {
+		result1 *connect.ClusterInfo
+		result2 *http.Response
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeClient) GetConnector(arg1 string) (*connect.Connector, *http.Response, error) {
@@ -867,6 +939,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.createConnectorMutex.RUnlock()
 	fake.deleteConnectorMutex.RLock()
 	defer fake.deleteConnectorMutex.RUnlock()
+	fake.getClusterInfoMutex.RLock()
+	defer fake.getClusterInfoMutex.RUnlock()
 	fake.getConnectorMutex.RLock()
 	defer fake.getConnectorMutex.RUnlock()
 	fake.getConnectorStatusMutex.RLock()
