@@ -4,8 +4,7 @@ import (
 	"net/http"
 )
 
-// This is new and not from the original author
-
+// ClusterInfo - this is new and not from the original author
 type ClusterInfo struct {
 	Version        string `json:"version"`
 	Commit         string `json:"commit"`
@@ -16,7 +15,7 @@ type ClusterInfo struct {
 //
 // See: https://docs.confluent.io/current/connect/references/restapi.html#kconnect-cluster
 func (c *Client) GetClusterInfo() (*ClusterInfo, *http.Response, error) {
-	path := ""
+	path := "/"
 	clusterInfo := new(ClusterInfo)
 	response, err := c.get(path, &clusterInfo)
 	return clusterInfo, response, err
