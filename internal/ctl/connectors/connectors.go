@@ -23,6 +23,7 @@ func Command() *cobra.Command {
 	connectorsCmd.AddCommand(removeConnectorCmd())
 	connectorsCmd.AddCommand(pauseConnectorsCmd())
 	connectorsCmd.AddCommand(resumeConnectorsCmd())
+	connectorsCmd.AddCommand(connectorsStatusCmd())
 
 	return connectorsCmd
 }
