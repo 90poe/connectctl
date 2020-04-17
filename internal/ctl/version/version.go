@@ -35,7 +35,7 @@ func Command() *cobra.Command {
 	return versionCmd
 }
 
-func doVersion(cmd *cobra.Command, params *versionCmdParams) error {
+func doVersion(_ *cobra.Command, params *versionCmdParams) error {
 	var (
 		clusterInfo *connect.ClusterInfo
 		err         error
