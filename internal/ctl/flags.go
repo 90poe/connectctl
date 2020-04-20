@@ -31,6 +31,16 @@ func AddQuietFlag(cmd *cobra.Command, quiet *bool) {
 	BindBoolVarP(cmd.Flags(), quiet, false, "quiet", "q", "disable output logging")
 }
 
+func AddInputFlag(cmd *cobra.Command, required bool, input *string) {
+	description := "Input data in json format"
+
+	if required {
+		description = requiredDescription(&description)
+	}
+
+	BindStringVarP(cmd.Flags(), input, "", "input", "i", description)
+}
+
 func AddDefinitionFilesFlags(cmd *cobra.Command, files *[]string, directory *string, env *string) {
 	BindStringArrayVarP(cmd.Flags(), files, []string{}, "files", "f", "the connector definitions files (Required if --directory or --env-var not specified)")
 	BindStringVarP(cmd.Flags(), directory, "", "directory", "d", "the directory containing the connector definitions files (Required if --file or --env-vars not specified)")

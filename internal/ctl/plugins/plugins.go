@@ -17,6 +17,7 @@ func Command() *cobra.Command {
 
 	// Add subcommands
 	pluginsCmd.AddCommand(listPluginsCmd())
+	pluginsCmd.AddCommand(validatePluginsCmd())
 
 	return pluginsCmd
 }

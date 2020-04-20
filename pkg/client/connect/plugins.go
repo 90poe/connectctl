@@ -1,6 +1,9 @@
 package connect
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
 
 // This is new and not from the original author
 
@@ -18,6 +21,21 @@ type Plugin struct {
 // you add new connector jars
 // See: https://docs.confluent.io/current/connect/references/restapi.html#get--connector-plugins-
 func (c *Client) ListPlugins() ([]*Plugin, *http.Response, error) {
+	path := "connector-plugins"
+	var names []*Plugin
+
+	response, err := c.get(path, &names)
+	return names, response, err
+}
+
+// ValidatePlugins validates the provided configuration values against the configuration definition.
+// See: https://docs.confluent.io/current/connect/references/restapi.html#put--connector-plugins-(string-name)-config-validate
+func (c *Client) ValidatePlugins(config ConnectorConfig) ([]*Plugin, *http.Response, error) {
+	connectorClass, ok := config["connector.class"]
+	if !ok {
+		return nil, nil, errors.New("missing required key in config: connector.class")
+	}
+	// TODO
 	path := "connector-plugins"
 	var names []*Plugin
 
