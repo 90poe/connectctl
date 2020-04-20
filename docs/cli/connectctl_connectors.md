@@ -28,6 +28,7 @@ None, all options are at the subcommand level
 ### SEE ALSO
 
 * [connectctl](connectctl.md)	 - connectctl: work with Kafka Connect easily
+* [connectctl connectors status](connectctl_connectors_status.md)     - Connectors status
 * [connectctl connectors add](connectctl_connectors_add.md)     - Add connectors
 * [connectctl connectors remove](connectctl_connectors_remove.md)     - Remove connectors
 * [connectctl connectors list](connectctl_connectors_list.md)     - List connectors
