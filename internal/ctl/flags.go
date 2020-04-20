@@ -27,6 +27,10 @@ func AddOutputFlags(cmd *cobra.Command, output *string) {
 	BindStringVarP(cmd.Flags(), output, "json", "output", "o", "specify the output format (valid options: json, table)")
 }
 
+func AddQuietFlag(cmd *cobra.Command, quiet *bool) {
+	BindBoolVarP(cmd.Flags(), quiet, false, "quiet", "q", "disable output logging")
+}
+
 func AddDefinitionFilesFlags(cmd *cobra.Command, files *[]string, directory *string, env *string) {
 	BindStringArrayVarP(cmd.Flags(), files, []string{}, "files", "f", "the connector definitions files (Required if --directory or --env-var not specified)")
 	BindStringVarP(cmd.Flags(), directory, "", "directory", "d", "the directory containing the connector definitions files (Required if --file or --env-vars not specified)")
@@ -51,6 +55,12 @@ func BindDurationVar(f *pflag.FlagSet, p *time.Duration, value time.Duration, lo
 
 func BindBoolVar(f *pflag.FlagSet, p *bool, value bool, long, description string) {
 	f.BoolVar(p, long, value, description)
+	_ = viper.BindPFlag(long, f.Lookup(long))
+	viper.SetDefault(long, value)
+}
+
+func BindBoolVarP(f *pflag.FlagSet, p *bool, value bool, long, short, description string) {
+	f.BoolVarP(p, long, short, value, description)
 	_ = viper.BindPFlag(long, f.Lookup(long))
 	viper.SetDefault(long, value)
 }

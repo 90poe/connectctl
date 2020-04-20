@@ -19,6 +19,7 @@ type connectorsStatusCmdParams struct {
 	ClusterURL string
 	Connectors []string
 	Output     string
+	Quiet      bool
 }
 
 func connectorsStatusCmd() *cobra.Command {
@@ -36,6 +37,7 @@ func connectorsStatusCmd() *cobra.Command {
 	ctl.AddCommonConnectorsFlags(statusCmd, &params.ClusterURL)
 	ctl.AddConnectorNamesFlags(statusCmd, &params.Connectors)
 	ctl.AddOutputFlags(statusCmd, &params.Output)
+	ctl.AddQuietFlag(statusCmd, &params.Quiet)
 
 	return statusCmd
 }
@@ -63,17 +65,25 @@ func doConnectorsStatus(_ *cobra.Command, params *connectorsStatusCmdParams) err
 		return errors.Wrap(err, "error getting connectors status")
 	}
 
-	switch params.Output {
-	case "json":
-		if err = printAsJSON(statusList); err != nil {
-			return errors.Wrap(err, "error printing connectors status as JSON")
+	if !params.Quiet {
+		switch params.Output {
+		case "json":
+			if err = printAsJSON(statusList); err != nil {
+				return errors.Wrap(err, "error printing connectors status as JSON")
+			}
+
+		case "table":
+			printAsTable(statusList)
+
+		default:
+			return fmt.Errorf("invalid output format specified: %s", params.Output)
 		}
+	}
 
-	case "table":
-		printAsTable(statusList)
+	failingConnectors, failingTasks := countFailing(statusList)
 
-	default:
-		return fmt.Errorf("invalid output format specified: %s", params.Output)
+	if failingConnectors != 0 || failingTasks != 0 {
+		return fmt.Errorf("%d connectors are failng, %d tasks are failing", failingConnectors, failingTasks)
 	}
 
 	return nil
