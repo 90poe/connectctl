@@ -10,7 +10,7 @@ import (
 )
 
 func AddClusterFlag(cmd *cobra.Command, required bool, clusterURL *string) {
-	description := "the URL of the connect cluster to manage"
+	description := "the URL of the connect cluster"
 
 	if required {
 		description = requiredDescription(&description)
@@ -38,7 +38,7 @@ func AddDefinitionFilesFlags(cmd *cobra.Command, files *[]string, directory *str
 }
 
 func AddConnectorNamesFlags(cmd *cobra.Command, names *[]string) {
-	BindStringArrayVarP(cmd.Flags(), names, []string{}, "connectors", "n", "The connect names to restart (if not specified all connectors will be restarted)")
+	BindStringArrayVarP(cmd.Flags(), names, []string{}, "connectors", "n", "The connect names to perform action on (if not specified action will be performed on all connectors)")
 }
 
 func BindDurationVarP(f *pflag.FlagSet, p *time.Duration, value time.Duration, long, short, description string) {
