@@ -18,6 +18,7 @@ type client interface {
 	ListConnectors() ([]string, *http.Response, error)
 	GetConnector(name string) (*connect.Connector, *http.Response, error)
 	ListPlugins() ([]*connect.Plugin, *http.Response, error)
+	ValidatePlugins(config connect.ConnectorConfig) (*connect.ConfigValidation, *http.Response, error)
 	GetConnectorStatus(name string) (*connect.ConnectorStatus, *http.Response, error)
 	DeleteConnector(name string) (*http.Response, error)
 	RestartConnectorTask(name string, taskID int) (*http.Response, error)

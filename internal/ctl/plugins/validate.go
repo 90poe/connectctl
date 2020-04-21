@@ -1,7 +1,9 @@
 package plugins
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
@@ -36,6 +38,11 @@ func validatePluginsCmd() *cobra.Command {
 }
 
 func doValidatePlugins(_ *cobra.Command, params *validatePluginsCmdParams) error {
+	var inputConfig connect.ConnectorConfig
+	if err := json.Unmarshal([]byte(params.Input), &inputConfig); err != nil {
+		return errors.Wrap(err, "error parsing input connector config")
+	}
+
 	config := &manager.Config{
 		ClusterURL: params.ClusterURL,
 		Version:    version.Version,
@@ -53,10 +60,23 @@ func doValidatePlugins(_ *cobra.Command, params *validatePluginsCmdParams) error
 		return errors.Wrap(err, "error creating connectors manager")
 	}
 
-	//TODO remove
-	if mngr != nil {
-		return nil
+	validation, err := mngr.ValidatePlugins(inputConfig)
+	if err != nil {
+		return err
 	}
 
+	//TODO support different output types
+	printAsJSON(validation)
+
+	return nil
+}
+
+func printAsJSON(validation *connect.ConfigValidation) error {
+	b, err := json.MarshalIndent(validation, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	os.Stdout.Write(b)
 	return nil
 }
