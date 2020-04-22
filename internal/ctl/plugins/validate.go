@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/90poe/connectctl/internal/ctl"
 	"github.com/90poe/connectctl/internal/version"
 	"github.com/90poe/connectctl/pkg/client/connect"
 	"github.com/90poe/connectctl/pkg/manager"
+	"github.com/jedib0t/go-pretty/table"
 	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
@@ -17,6 +19,8 @@ import (
 type validatePluginsCmdParams struct {
 	ClusterURL string
 	Input      string
+	Output     string
+	Quiet      bool
 }
 
 func validatePluginsCmd() *cobra.Command {
@@ -33,6 +37,8 @@ func validatePluginsCmd() *cobra.Command {
 
 	ctl.AddClusterFlag(validateCmd, true, &params.ClusterURL)
 	ctl.AddInputFlag(validateCmd, true, &params.Input)
+	ctl.AddOutputFlags(validateCmd, &params.Output)
+	ctl.AddQuietFlag(validateCmd, &params.Quiet)
 
 	return validateCmd
 }
@@ -65,8 +71,25 @@ func doValidatePlugins(_ *cobra.Command, params *validatePluginsCmdParams) error
 		return err
 	}
 
-	//TODO support different output types
-	printAsJSON(validation)
+	if !params.Quiet {
+		switch params.Output {
+		case "json":
+			if err = printAsJSON(validation); err != nil {
+				return errors.Wrap(err, "error printing validation results as JSON")
+			}
+
+		case "table":
+			printAsTable(validation)
+
+		default:
+			return fmt.Errorf("invalid output format specified: %s", params.Output)
+		}
+
+	}
+
+	if validation.ErrorCount > 0 {
+		return fmt.Errorf("detected %d errors in the configuation", validation.ErrorCount)
+	}
 
 	return nil
 }
@@ -79,4 +102,30 @@ func printAsJSON(validation *connect.ConfigValidation) error {
 
 	os.Stdout.Write(b)
 	return nil
+}
+
+func printAsTable(validation *connect.ConfigValidation) {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.Style().Options.SeparateRows = true
+	t.AppendHeader(table.Row{"Name", "Spec", "Value", "Errors"})
+
+	for _, info := range validation.Configs {
+		spec := fmt.Sprintf(
+			"default: %s\nrequired: %v",
+			ctl.StrPtrToStr(info.Definition.DefaultValue),
+			info.Definition.Required,
+		)
+
+		errors := strings.Join(info.Value.Errors, "\n")
+
+		t.AppendRow(table.Row{
+			info.Definition.Name,
+			spec,
+			ctl.StrPtrToStr(info.Value.Value),
+			errors,
+		})
+	}
+
+	t.Render()
 }
