@@ -3,7 +3,6 @@ package plugins
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/90poe/connectctl/internal/ctl"
@@ -74,7 +73,7 @@ func doValidatePlugins(_ *cobra.Command, params *validatePluginsCmdParams) error
 	if !params.Quiet {
 		switch params.Output {
 		case "json":
-			if err = printAsJSON(validation); err != nil {
+			if err = ctl.PrintAsJSON(validation); err != nil {
 				return errors.Wrap(err, "error printing validation results as JSON")
 			}
 
@@ -84,7 +83,6 @@ func doValidatePlugins(_ *cobra.Command, params *validatePluginsCmdParams) error
 		default:
 			return fmt.Errorf("invalid output format specified: %s", params.Output)
 		}
-
 	}
 
 	if validation.ErrorCount > 0 {
@@ -94,38 +92,26 @@ func doValidatePlugins(_ *cobra.Command, params *validatePluginsCmdParams) error
 	return nil
 }
 
-func printAsJSON(validation *connect.ConfigValidation) error {
-	b, err := json.MarshalIndent(validation, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	os.Stdout.Write(b)
-	return nil
-}
-
 func printAsTable(validation *connect.ConfigValidation) {
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.Style().Options.SeparateRows = true
-	t.AppendHeader(table.Row{"Name", "Spec", "Value", "Errors"})
+	ctl.PrintAsTable(func(t table.Writer) {
+		t.Style().Options.SeparateRows = true
+		t.AppendHeader(table.Row{"Name", "Spec", "Value", "Errors"})
 
-	for _, info := range validation.Configs {
-		spec := fmt.Sprintf(
-			"default: %s\nrequired: %v",
-			ctl.StrPtrToStr(info.Definition.DefaultValue),
-			info.Definition.Required,
-		)
+		for _, info := range validation.Configs {
+			spec := fmt.Sprintf(
+				"default: %s\nrequired: %v",
+				ctl.StrPtrToStr(info.Definition.DefaultValue),
+				info.Definition.Required,
+			)
 
-		errors := strings.Join(info.Value.Errors, "\n")
+			errors := strings.Join(info.Value.Errors, "\n")
 
-		t.AppendRow(table.Row{
-			info.Definition.Name,
-			spec,
-			ctl.StrPtrToStr(info.Value.Value),
-			errors,
-		})
-	}
-
-	t.Render()
+			t.AppendRow(table.Row{
+				info.Definition.Name,
+				spec,
+				ctl.StrPtrToStr(info.Value.Value),
+				errors,
+			})
+		}
+	})
 }
