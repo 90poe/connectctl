@@ -29,3 +29,4 @@ None, all options are at the subcommand level
 
 * [connectctl](connectctl.md)	 - connectctl: work with Kafka Connect easily
 * [connectctl plugins list](connectctl_plugins_list.md)     - List connector plugins
+* [connectctl plugins validate](connectctl_plugins_validate.md)     - Validates connector config

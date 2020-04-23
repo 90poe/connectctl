@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>connectctl plugins &mdash; connectctl  documentation</title>
+  <title>connectctl plugins validate &mdash; connectctl  documentation</title>
   
 
   
@@ -36,8 +36,8 @@
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="connectctl plugins list" href="connectctl_plugins_list.html" />
-    <link rel="prev" title="connectctl connectors status" href="connectctl_connectors_status.html" /> 
+    <link rel="next" title="connectctl version" href="connectctl_version.html" />
+    <link rel="prev" title="connectctl plugins list" href="connectctl_plugins_list.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -100,9 +100,9 @@
 <li class="toctree-l2"><a class="reference internal" href="connectctl_connectors_restart.html">connectctl connectors restart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="connectctl_connectors_resume.html">connectctl connectors resume</a></li>
 <li class="toctree-l2"><a class="reference internal" href="connectctl_connectors_status.html">connectctl connectors status</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">connectctl plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connectctl_plugins.html">connectctl plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="connectctl_plugins_list.html">connectctl plugins list</a></li>
-<li class="toctree-l2"><a class="reference internal" href="connectctl_plugins_validate.html">connectctl plugins validate</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">connectctl plugins validate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="connectctl_version.html">connectctl version</a></li>
 </ul>
 </li>
@@ -153,13 +153,13 @@
         
           <li><a href="index.html">connectctl</a> &raquo;</li>
         
-      <li>connectctl plugins</li>
+      <li>connectctl plugins validate</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/cli/connectctl_plugins.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/cli/connectctl_plugins_validate.md.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -172,25 +172,30 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="connectctl-plugins">
-<h1>connectctl plugins<a class="headerlink" href="#connectctl-plugins" title="Permalink to this headline">¶</a></h1>
-<p>Manage connector plugins</p>
+  <div class="section" id="connectctl-plugins-validate">
+<h1>connectctl plugins validate<a class="headerlink" href="#connectctl-plugins-validate" title="Permalink to this headline">¶</a></h1>
+<p>Validates connector config</p>
 <div class="section" id="synopsis">
 <h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
-<p>Perform operations against a Kafka Connect cluster that relate to connector plugins.
-Operations are always against a specific cluster and URL must be supplied.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">connectctl</span> <span class="n">plugins</span> <span class="o">&lt;</span><span class="n">command</span><span class="o">...&gt;</span> <span class="p">[</span><span class="n">flags</span><span class="p">]</span>
+<p>Validate the provided configuration values against the configuration definition. This API performs per config validation, outputs suggested values and error messages during validation.
+It exits with code 1 if config is invalid.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">connectctl</span> <span class="n">plugins</span> <span class="n">validate</span> <span class="p">[</span><span class="n">flags</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="options">
 <h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
-<p>None, all options are at the subcommand level</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">-</span><span class="n">c</span><span class="p">,</span> <span class="o">--</span><span class="n">cluster</span> <span class="n">string</span>   <span class="n">the</span> <span class="n">URL</span> <span class="n">of</span> <span class="n">the</span> <span class="n">connect</span> <span class="n">cluster</span> <span class="p">(</span><span class="n">required</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>             <span class="n">help</span> <span class="k">for</span> <span class="n">validate</span>
+  <span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">--</span><span class="nb">input</span> <span class="n">string</span>     <span class="n">Input</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">json</span> <span class="nb">format</span> <span class="p">(</span><span class="n">required</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">o</span><span class="p">,</span> <span class="o">--</span><span class="n">output</span> <span class="n">string</span>    <span class="n">specify</span> <span class="n">the</span> <span class="n">output</span> <span class="nb">format</span> <span class="p">(</span><span class="n">valid</span> <span class="n">options</span><span class="p">:</span> <span class="n">json</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span> <span class="p">(</span><span class="n">default</span> <span class="s2">&quot;json&quot;</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">q</span><span class="p">,</span> <span class="o">--</span><span class="n">quiet</span>            <span class="n">disable</span> <span class="n">output</span> <span class="n">logging</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="options-inherited-from-parent-commands">
 <h2>Options inherited from parent commands<a class="headerlink" href="#options-inherited-from-parent-commands" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>                    <span class="n">Help</span> <span class="k">for</span> <span class="n">connectctl</span>
-  <span class="o">-</span><span class="n">l</span><span class="p">,</span> <span class="o">--</span><span class="n">loglevel</span> <span class="n">loglevel</span>       <span class="n">Specify</span> <span class="n">the</span> <span class="n">loglevel</span> <span class="k">for</span> <span class="n">the</span> <span class="n">program</span> <span class="p">(</span><span class="n">default</span> <span class="n">info</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">-</span><span class="n">l</span><span class="p">,</span> <span class="o">--</span><span class="n">loglevel</span> <span class="n">loglevel</span>       <span class="n">Specify</span> <span class="n">the</span> <span class="n">loglevel</span> <span class="k">for</span> <span class="n">the</span> <span class="n">program</span> <span class="p">(</span><span class="n">default</span> <span class="n">info</span><span class="p">)</span>
       <span class="o">--</span><span class="n">logfile</span>                 <span class="n">Specify</span> <span class="n">a</span> <span class="n">file</span> <span class="n">to</span> <span class="n">output</span> <span class="n">logs</span> <span class="n">to</span>
 </pre></div>
 </div>
@@ -198,9 +203,7 @@ Operations are always against a specific cluster and URL must be supplied.</p>
 <div class="section" id="see-also">
 <h2>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="connectctl.html"><span class="doc">connectctl</span></a>	 - connectctl: work with Kafka Connect easily</p></li>
-<li><p><a class="reference internal" href="connectctl_plugins_list.html"><span class="doc">connectctl plugins list</span></a>     - List connector plugins</p></li>
-<li><p><a class="reference internal" href="connectctl_plugins_validate.html"><span class="doc">connectctl plugins validate</span></a>     - Validates connector config</p></li>
+<li><p><a class="reference internal" href="connectctl_plugins.html"><span class="doc">connectctl plugins</span></a>	 - Manage plugins</p></li>
 </ul>
 </div>
 </div>
@@ -213,10 +216,10 @@ Operations are always against a specific cluster and URL must be supplied.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="connectctl_plugins_list.html" class="btn btn-neutral float-right" title="connectctl plugins list" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="connectctl_version.html" class="btn btn-neutral float-right" title="connectctl version" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="connectctl_connectors_status.html" class="btn btn-neutral float-left" title="connectctl connectors status" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="connectctl_plugins_list.html" class="btn btn-neutral float-left" title="connectctl plugins list" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
