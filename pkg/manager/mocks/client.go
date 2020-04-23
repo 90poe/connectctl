@@ -176,6 +176,21 @@ type FakeClient struct {
 		result2 *http.Response
 		result3 error
 	}
+	ValidatePluginsStub        func(connect.ConnectorConfig) (*connect.ConfigValidation, *http.Response, error)
+	validatePluginsMutex       sync.RWMutex
+	validatePluginsArgsForCall []struct {
+		arg1 connect.ConnectorConfig
+	}
+	validatePluginsReturns struct {
+		result1 *connect.ConfigValidation
+		result2 *http.Response
+		result3 error
+	}
+	validatePluginsReturnsOnCall map[int]struct {
+		result1 *connect.ConfigValidation
+		result2 *http.Response
+		result3 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -932,6 +947,72 @@ func (fake *FakeClient) UpdateConnectorConfigReturnsOnCall(i int, result1 *conne
 	}{result1, result2, result3}
 }
 
+func (fake *FakeClient) ValidatePlugins(arg1 connect.ConnectorConfig) (*connect.ConfigValidation, *http.Response, error) {
+	fake.validatePluginsMutex.Lock()
+	ret, specificReturn := fake.validatePluginsReturnsOnCall[len(fake.validatePluginsArgsForCall)]
+	fake.validatePluginsArgsForCall = append(fake.validatePluginsArgsForCall, struct {
+		arg1 connect.ConnectorConfig
+	}{arg1})
+	fake.recordInvocation("ValidatePlugins", []interface{}{arg1})
+	fake.validatePluginsMutex.Unlock()
+	if fake.ValidatePluginsStub != nil {
+		return fake.ValidatePluginsStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	fakeReturns := fake.validatePluginsReturns
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeClient) ValidatePluginsCallCount() int {
+	fake.validatePluginsMutex.RLock()
+	defer fake.validatePluginsMutex.RUnlock()
+	return len(fake.validatePluginsArgsForCall)
+}
+
+func (fake *FakeClient) ValidatePluginsCalls(stub func(connect.ConnectorConfig) (*connect.ConfigValidation, *http.Response, error)) {
+	fake.validatePluginsMutex.Lock()
+	defer fake.validatePluginsMutex.Unlock()
+	fake.ValidatePluginsStub = stub
+}
+
+func (fake *FakeClient) ValidatePluginsArgsForCall(i int) connect.ConnectorConfig {
+	fake.validatePluginsMutex.RLock()
+	defer fake.validatePluginsMutex.RUnlock()
+	argsForCall := fake.validatePluginsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClient) ValidatePluginsReturns(result1 *connect.ConfigValidation, result2 *http.Response, result3 error) {
+	fake.validatePluginsMutex.Lock()
+	defer fake.validatePluginsMutex.Unlock()
+	fake.ValidatePluginsStub = nil
+	fake.validatePluginsReturns = struct {
+		result1 *connect.ConfigValidation
+		result2 *http.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) ValidatePluginsReturnsOnCall(i int, result1 *connect.ConfigValidation, result2 *http.Response, result3 error) {
+	fake.validatePluginsMutex.Lock()
+	defer fake.validatePluginsMutex.Unlock()
+	fake.ValidatePluginsStub = nil
+	if fake.validatePluginsReturnsOnCall == nil {
+		fake.validatePluginsReturnsOnCall = make(map[int]struct {
+			result1 *connect.ConfigValidation
+			result2 *http.Response
+			result3 error
+		})
+	}
+	fake.validatePluginsReturnsOnCall[i] = struct {
+		result1 *connect.ConfigValidation
+		result2 *http.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -959,6 +1040,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.resumeConnectorMutex.RUnlock()
 	fake.updateConnectorConfigMutex.RLock()
 	defer fake.updateConnectorConfigMutex.RUnlock()
+	fake.validatePluginsMutex.RLock()
+	defer fake.validatePluginsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

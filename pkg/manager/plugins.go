@@ -16,3 +16,14 @@ func (c *ConnectorManager) GetAllPlugins() ([]*connect.Plugin, error) {
 
 	return plugins, nil
 }
+
+// ValidatePlugins returns validation results of a connector config
+func (c *ConnectorManager) ValidatePlugins(config connect.ConnectorConfig) (*connect.ConfigValidation, error) {
+	validation, _, err := c.client.ValidatePlugins(config)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error validating plugins")
+	}
+
+	return validation, nil
+}
