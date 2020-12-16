@@ -34,4 +34,4 @@ Copyright 2019 90poe.  This project is licensed under the Apache 2.0 License.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CircleCI](https://circleci.com/gh/90poe/connectctl/tree/master.svg?style=svg)](https://circleci.com/gh/90poe/connectctl/tree/master)
-![OSS Lifecycle](https://img.shields.io/osslifecycle/90poe/connectctl)
+![OSS Lifecycle](https://img.shields.io/osslifecycle/90poe/connectctl) 
