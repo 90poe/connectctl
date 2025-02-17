@@ -4,7 +4,7 @@ connectctl: work with Kafka Connect easily
 
 ### Synopsis
 
-*connectctl* is a cli that makes working with kafka connect easier. It can be used to manage connectors and plugins and to also also actively manage/reconcile the state of a cluster.
+*connectctl* is a cli that makes working with kafka connect easier. It can be used to manage connectors and plugins and to actively manage/reconcile the state of a cluster.
 
 The operations you can perform are split into 2 subcommands:
     connectors  Manage Kafka Connect connectors
